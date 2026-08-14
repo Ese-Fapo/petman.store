@@ -1,11 +1,15 @@
 'use client'
-import { Search, ShoppingCart } from "lucide-react";
+import { PackageIcon, Search, ShoppingCart, ShoppingCartIcon } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useSelector } from "react-redux";
+import { useUser, useClerk, UserButton } from "@clerk/nextjs"
 
 const Navbar = () => {
+    
+    const { user } = useUser();
+    const { openSignIn } = useClerk();
 
     const router = useRouter();
 
@@ -14,7 +18,11 @@ const Navbar = () => {
 
     const handleSearch = (e) => {
         e.preventDefault()
-        router.push(`/shop?search=${search}`)
+        const query = search.trim()
+
+        if (query) {
+            router.push(`/shop?search=${encodeURIComponent(query)}`)
+        }
     }
 
     return (
@@ -46,18 +54,38 @@ const Navbar = () => {
                             Cart
                             <button className="absolute -top-1 left-3 text-[8px] text-white bg-slate-600 size-3.5 rounded-full">{cartCount}</button>
                         </Link>
-
-                        <button className="px-8 py-2 bg-green-600 hover:bg-green-700 transition text-white rounded-full">
-                            Login
-                        </button>
-
+                        {
+                            !user ? (
+                                <button onClick={openSignIn} className="px-8 py-2 bg-green-600 hover:bg-green-700 transition text-white rounded-full">
+                                    Login
+                                </button>
+                            ) : (
+                                <UserButton>
+                                    <UserButton.MenuItems>
+                                        <UserButton.Action labelIcon={<PackageIcon size={16} />} label="My Orders" onClick={() =>
+                                            router.push('/orders')} />
+                                    </UserButton.MenuItems>
+                                </UserButton>
+                            )
+                        }
                     </div>
 
                     {/* Mobile User Button  */}
                     <div className="sm:hidden">
-                        <button className="px-7 py-1.5 bg-green-600 hover:bg-green-700 text-sm transition text-white rounded-full">
-                            Login
-                        </button>
+                        {user ? (
+                            <div>
+                                <UserButton>
+                                    <UserButton.MenuItems>
+                                        <UserButton.Action labelIcon={<ShoppingCartIcon size={16} />} label="Cart" onClick={() =>
+                                            router.push('/cart')} />
+                                    </UserButton.MenuItems>
+                                </UserButton>
+                            </div>
+                        ) : (
+                            <button onClick={openSignIn} className="px-7 py-1.5 bg-green-600 hover:bg-green-700 text-sm transition text-white rounded-full">
+                                Login
+                            </button>
+                        )}
                     </div>
                 </div>
             </div>
