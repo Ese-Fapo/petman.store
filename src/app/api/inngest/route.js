@@ -1,11 +1,13 @@
-import { Inngest } from 'inngest'
+import { syncUserCreation, syncUserDeletion, syncUserUpdation } from '@/inngest/functions'
+import { inngest } from '@/inngest/client'
 import { serve } from 'inngest/next'
 
-const inngest = new Inngest({ id: 'justpets' })
-//create an Api that serves zero functions
+// Create an API route that serves Inngest functions.
 export const { GET, POST, PUT } = serve({
   client: inngest,
   functions: [
-    /**my functions will be passed here */
+    syncUserCreation,
+    syncUserUpdation,
+    syncUserDeletion,
   ],
 })
