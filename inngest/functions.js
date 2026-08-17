@@ -10,8 +10,7 @@ const getUserData = (data) => ({
 
 // inngest functions to save user to database
 export const syncUserCreation = inngest.createFunction(
-  { id: 'sync-user-create' },
-  { event: 'clerk/user.created' },
+  { id: 'sync-user-create', triggers: { event: 'clerk/user.created' } },
   async ({ event }) => {
     await prisma.user.create({
       data: getUserData(event.data),
@@ -22,8 +21,7 @@ export const syncUserCreation = inngest.createFunction(
 // inngest function to update user data in database
 
 export const syncUserUpdation = inngest.createFunction(
-  { id: 'sync-user-update' },
-  { event: 'clerk/user.updated' },
+  { id: 'sync-user-update', triggers: { event: 'clerk/user.updated' } },
   async ({ event }) => {
     const data = getUserData(event.data)
 
@@ -37,8 +35,7 @@ export const syncUserUpdation = inngest.createFunction(
 // inngest function to delete user from database
 
 export const syncUserDeletion = inngest.createFunction(
-  { id: 'sync-user-delete' },
-  { event: 'clerk/user.deleted' },
+  { id: 'sync-user-delete', triggers: { event: 'clerk/user.deleted' } },
   async ({ event }) => {
     await prisma.user.delete({
       where: { id: event.data.id },
