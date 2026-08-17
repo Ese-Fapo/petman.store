@@ -1,4 +1,4 @@
-import { Facebook, Instagram, Linkedin, Mail, MapPin, Phone, Twitter } from "lucide-react";
+import { Facebook, Instagram, Linkedin, Mail, MapPin, Phone, Store, Twitter } from "lucide-react";
 import Link from "next/link";
 
 const Footer = () => {
@@ -48,6 +48,10 @@ const Footer = () => {
                             JUST<span className="text-green-600">PETS</span><span className="text-green-600 text-5xl leading-0">.</span>
                         </Link>
                         <p className="max-w-[410px] mt-6 text-sm">Welcome to JUSTPETS, an Ireland-based pet shop for food, toys, bowls, treats, and care essentials for the pets who make the house feel like home.</p>
+                        <Link href="/create-store" className="mt-5 inline-flex items-center gap-2 rounded-md bg-amber-500 px-4 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-amber-600">
+                            <Store size={16} />
+                            Create Your Own Shop
+                        </Link>
                         <div className="flex items-center gap-3 mt-5">
                             {socialIcons.map((item, i) => (
                                 <Link href={item.link} key={i} className="flex items-center justify-center w-10 h-10 bg-slate-100 hover:scale-105 hover:border border-slate-300 transition rounded-full">
