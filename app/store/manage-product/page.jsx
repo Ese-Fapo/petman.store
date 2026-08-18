@@ -29,9 +29,28 @@ export default function StoreManageProducts() {
     }
 
     const toggleStock = async (productId) => {
-        // Logic to toggle the stock of a product
+        const response = await fetch("/api/store/stock-toggle", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ productId }),
+        })
+        const data = await response.json()
 
+        if (!response.ok) {
+            throw new Error(data.error || "Failed to update product stock")
+        }
 
+        setProducts((currentProducts) =>
+            currentProducts.map((product) =>
+                product.id === productId
+                    ? { ...product, inStock: data.product.inStock }
+                    : product
+            )
+        )
+
+        return data.message
     }
 
     useEffect(() => {
