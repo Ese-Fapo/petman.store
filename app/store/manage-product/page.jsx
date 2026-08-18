@@ -3,7 +3,6 @@ import { useEffect, useState } from "react"
 import { toast } from "react-hot-toast"
 import Image from "next/image"
 import Loading from "@/components/Loading"
-import { productDummyData } from "@/assets/assets"
 
 export default function StoreManageProducts() {
 
@@ -13,8 +12,20 @@ export default function StoreManageProducts() {
     const [products, setProducts] = useState([])
 
     const fetchProducts = async () => {
-        setProducts(productDummyData)
-        setLoading(false)
+        try {
+            const response = await fetch("/api/store/product")
+            const data = await response.json()
+
+            if (!response.ok) {
+                throw new Error(data.error || "Failed to fetch products")
+            }
+
+            setProducts(data.products || [])
+        } catch (error) {
+            toast.error(error.message)
+        } finally {
+            setLoading(false)
+        }
     }
 
     const toggleStock = async (productId) => {
@@ -43,7 +54,7 @@ export default function StoreManageProducts() {
                     </tr>
                 </thead>
                 <tbody className="text-slate-700">
-                    {products.map((product) => (
+                    {products.length ? products.map((product) => (
                         <tr key={product.id} className="border-t border-gray-200 hover:bg-gray-50">
                             <td className="px-4 py-3">
                                 <div className="flex gap-2 items-center">
@@ -62,7 +73,11 @@ export default function StoreManageProducts() {
                                 </label>
                             </td>
                         </tr>
-                    ))}
+                    )) : (
+                        <tr className="border-t border-gray-200">
+                            <td className="px-4 py-6 text-center text-slate-400" colSpan={5}>No products found</td>
+                        </tr>
+                    )}
                 </tbody>
             </table>
         </>

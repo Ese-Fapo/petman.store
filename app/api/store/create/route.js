@@ -3,16 +3,20 @@ import { prisma } from "@/lib/prisma";
 import { auth } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 
+// Store creation rules.
 const USERNAME_REGEX = /^[a-z0-9_-]{3,30}$/;
 const MAX_LOGO_SIZE = 5 * 1024 * 1024;
 
+// Keep JSON responses consistent across this route.
 const json = (body, status = 200) => NextResponse.json(body, { status });
 
+// Read and trim required text fields from multipart form data.
 const getRequiredText = (formData, key) => {
   const value = formData.get(key);
   return typeof value === "string" ? value.trim() : "";
 };
 
+// Validate the uploaded store logo before sending it to ImageKit.
 const getRequiredImage = (formData) => {
   const image = formData.get("image");
 
@@ -31,21 +35,38 @@ const getRequiredImage = (formData) => {
   return image;
 };
 
+// Clerk auth helper for both GET and POST handlers.
 const getUserId = async () => {
   const { userId } = await auth();
   return userId;
 };
 
+// Get the current user's store status without loading unnecessary store data.
+const getRegisteredStoreStatus = async (userId) => {
+  return prisma.store.findUnique({
+    where: { userId },
+    select: {
+      id: true,
+      status: true,
+      isActive: true,
+      username: true,
+    },
+  });
+};
+
+// Preserve the original extension when ImageKit creates the uploaded file name.
 const getImageExtension = (image) => {
   const extension = image.name?.split(".").pop()?.toLowerCase();
   return extension && /^[a-z0-9]+$/.test(extension) ? `.${extension}` : "";
 };
 
+// Upload the store logo to ImageKit and return the optimized delivery URL.
 const uploadStoreLogo = async (image, username) => {
   if (!process.env.IMAGEKIT_PRIVATE_KEY || !imagekitUrlEndpoint) {
     throw new Error("IMAGEKIT_NOT_CONFIGURED");
   }
 
+  // Store logos in a dedicated folder and normalize large images at upload time.
   const uploadedFile = await imagekit.files.upload({
     file: image,
     fileName: `${username}-logo${getImageExtension(image)}`,
@@ -80,6 +101,7 @@ const uploadStoreLogo = async (image, username) => {
   };
 };
 
+// Avoid orphaned ImageKit files if database creation fails after upload.
 const deleteUploadedLogo = async (fileId) => {
   if (!fileId) {
     return;
@@ -92,6 +114,7 @@ const deleteUploadedLogo = async (fileId) => {
   }
 };
 
+// Return the current user's store application status.
 export async function GET() {
   try {
     const userId = await getUserId();
@@ -100,20 +123,14 @@ export async function GET() {
       return json({ error: "Unauthorized" }, 401);
     }
 
-    const store = await prisma.store.findUnique({
-      where: { userId },
-      select: {
-        id: true,
-        status: true,
-        isActive: true,
-        username: true,
-      },
-    });
+    // Check if the user has already registered a store.
+    const store = await getRegisteredStoreStatus(userId);
 
     return json({
+      registered: Boolean(store),
       alreadySubmitted: Boolean(store),
       store,
-      status: store?.status ?? null,
+      status: store?.status ?? "not_registered",
     });
   } catch (error) {
     console.error("Failed to fetch store status:", error);
@@ -121,6 +138,7 @@ export async function GET() {
   }
 }
 
+// Create a store application for the current user.
 export async function POST(request) {
   try {
     const userId = await getUserId();
@@ -129,6 +147,20 @@ export async function POST(request) {
       return json({ error: "Unauthorized" }, 401);
     }
 
+    // If the user already registered a store, return that store's status immediately.
+    const registeredStore = await getRegisteredStoreStatus(userId);
+
+    if (registeredStore) {
+      return json({
+        message: "Store already registered",
+        registered: true,
+        alreadySubmitted: true,
+        store: registeredStore,
+        status: registeredStore.status,
+      }, 200);
+    }
+
+    // Collect form fields from the create-store page.
     const formData = await request.formData();
     const name = getRequiredText(formData, "name");
     const username = getRequiredText(formData, "username").toLowerCase();
@@ -148,24 +180,7 @@ export async function POST(request) {
       }, 400);
     }
 
-    const existingStore = await prisma.store.findUnique({
-      where: { userId },
-      select: {
-        id: true,
-        status: true,
-        isActive: true,
-        username: true,
-      },
-    });
-
-    if (existingStore) {
-      return json({
-        message: "Store application already submitted",
-        store: existingStore,
-        status: existingStore.status,
-      }, 409);
-    }
-
+    // Reserve usernames globally so store URLs stay unique.
     const existingUsername = await prisma.store.findUnique({
       where: { username },
       select: { id: true },
@@ -177,6 +192,7 @@ export async function POST(request) {
 
     const logo = await uploadStoreLogo(image, username);
 
+    // Save the store after the logo upload succeeds.
     try {
       const store = await prisma.store.create({
         data: {
@@ -205,10 +221,12 @@ export async function POST(request) {
         status: store.status,
       }, 201);
     } catch (error) {
+      // If Prisma rejects the create, remove the logo we just uploaded.
       await deleteUploadedLogo(logo.fileId);
       throw error;
     }
   } catch (error) {
+    // Validation errors return clear 400 responses for the form.
     if (error.message === "MISSING_LOGO") {
       return json({ error: "Store logo is required" }, 400);
     }
@@ -221,6 +239,7 @@ export async function POST(request) {
       return json({ error: "Store logo must be 5MB or smaller" }, 400);
     }
 
+    // Configuration and upload failures are server-side problems.
     if (error.message === "IMAGEKIT_NOT_CONFIGURED") {
       return json({ error: "ImageKit is not configured" }, 500);
     }
@@ -229,6 +248,7 @@ export async function POST(request) {
       return json({ error: "Failed to upload store logo" }, 502);
     }
 
+    // Prisma unique constraints also protect against race conditions.
     if (error.code === "P2002" && error.meta?.target?.includes("username")) {
       return json({ error: "Username is already taken" }, 409);
     }
@@ -241,6 +261,7 @@ export async function POST(request) {
       return json({ error: "User profile is not ready yet. Please try again shortly." }, 409);
     }
 
+    // Unexpected errors are logged server-side without exposing internals to users.
     console.error("Failed to create store:", error);
     return json({ error: "Failed to create store" }, 500);
   }

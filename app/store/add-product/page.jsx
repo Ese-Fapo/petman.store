@@ -25,8 +25,46 @@ export default function StoreAddProduct() {
 
     const onSubmitHandler = async (e) => {
         e.preventDefault()
-        // Logic to add a product
-        
+        setLoading(true)
+
+        try {
+            const selectedImages = Object.values(images).filter(Boolean)
+
+            if (selectedImages.length < 1) {
+                throw new Error("Please upload at least one product image")
+            }
+
+            const formData = new FormData()
+            formData.append("name", productInfo.name)
+            formData.append("description", productInfo.description)
+            formData.append("mrp", productInfo.mrp)
+            formData.append("price", productInfo.price)
+            formData.append("category", productInfo.category)
+            selectedImages.forEach((image) => formData.append("images", image))
+
+            const response = await fetch("/api/store/product", {
+                method: "POST",
+                body: formData,
+            })
+            const data = await response.json()
+
+            if (!response.ok) {
+                throw new Error(data.error || "Failed to add product")
+            }
+
+            setImages({ 1: null, 2: null, 3: null, 4: null })
+            setProductInfo({
+                name: "",
+                description: "",
+                mrp: 0,
+                price: 0,
+                category: "",
+            })
+
+            return data.message
+        } finally {
+            setLoading(false)
+        }
     }
 
 
