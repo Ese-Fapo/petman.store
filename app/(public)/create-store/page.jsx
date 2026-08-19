@@ -1,12 +1,16 @@
 'use client'
 import { assets } from "@/assets/assets"
-import { useEffect, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import Image from "next/image"
 import toast from "react-hot-toast"
 import Loading from "@/components/Loading"
+import { useUser } from "@clerk/nextjs"
+import { useRouter } from "next/navigation"
 
 export default function CreateStore() {
-
+    const { user } = useUser()
+    const router = useRouter()
+    const redirectTimerRef = useRef(null)
     const [alreadySubmitted, setAlreadySubmitted] = useState(false)
     const [status, setStatus] = useState("")
     const [loading, setLoading] = useState(true)
@@ -26,22 +30,104 @@ export default function CreateStore() {
         setStoreInfo({ ...storeInfo, [e.target.name]: e.target.value })
     }
 
+    const getStatusMessage = (storeStatus) => {
+        if (storeStatus === "approved") {
+            return "Your seller shop has been approved. You can now add products from your dashboard."
+        }
+
+        if (storeStatus === "pending") {
+            return "Your seller shop application has been submitted and is still waiting for approval."
+        }
+
+        return "Your seller shop application was not approved. You can still reapply in the future."
+    }
+
+    const setApplicationStatus = (data) => {
+        const nextStatus = data.status || "pending"
+
+        setAlreadySubmitted(Boolean(data.alreadySubmitted || data.registered || nextStatus !== "not_registered"))
+        setStatus(nextStatus)
+        setMessage(getStatusMessage(nextStatus))
+
+        if (redirectTimerRef.current) {
+            clearTimeout(redirectTimerRef.current)
+        }
+
+        if (nextStatus === "approved") {
+            redirectTimerRef.current = setTimeout(() => router.push("/store"), 5000)
+        }
+    }
+
     const fetchSellerStatus = async () => {
-        // Logic to check if the store is already submitted
+        try {
+            const response = await fetch("/api/store/create")
+            const data = await response.json()
 
+            if (!response.ok) {
+                if (response.status !== 401) {
+                    throw new Error(data.error || "Failed to fetch store status")
+                }
 
-        setLoading(false)
+                return
+            }
+
+            if (data.alreadySubmitted) {
+                setApplicationStatus(data)
+            }
+        } catch (error) {
+            toast.error(error.message || "Failed to fetch store status")
+        } finally {
+            setLoading(false)
+        }
     }
 
     const onSubmitHandler = async (e) => {
         e.preventDefault()
-        // Logic to submit the store details
+        if (!user) {
+            return toast('Please login to continue')
+        }
 
+        try {
+            const formData = new FormData()
+            formData.append("name", storeInfo.name)
+            formData.append("description", storeInfo.description)
+            formData.append("username", storeInfo.username)
+            formData.append("email", storeInfo.email)
+            formData.append("contact", storeInfo.contact)
+            formData.append("address", storeInfo.address)
+            formData.append("image", storeInfo.image)
+
+            const response = await fetch('/api/store/create', {
+                method: "POST",
+                body: formData,
+            })
+            const data = await response.json()
+
+            if (!response.ok) {
+                throw new Error(data.error || "Failed to submit store")
+            }
+
+            toast.success(data.message)
+            setApplicationStatus({
+                ...data,
+                alreadySubmitted: true,
+                status: data.status || "pending",
+            })
+
+        } catch (error) {
+            toast.error(error.message || "Failed to submit store")
+        }
 
     }
 
     useEffect(() => {
         fetchSellerStatus()
+
+        return () => {
+            if (redirectTimerRef.current) {
+                clearTimeout(redirectTimerRef.current)
+            }
+        }
     }, [])
 
     return !loading ? (
@@ -85,7 +171,8 @@ export default function CreateStore() {
             ) : (
                 <div className="min-h-[80vh] flex flex-col items-center justify-center">
                     <p className="sm:text-2xl lg:text-3xl mx-5 font-semibold text-slate-500 text-center max-w-2xl">{message}</p>
-                    {status === "approved" && <p className="mt-5 text-slate-400">redirecting to dashboard in <span className="font-semibold">5 seconds</span></p>}
+                    {status === "approved" && <p className="mt-5 text-slate-400">Redirecting to dashboard in <span className="font-semibold">5 seconds</span></p>}
+                    {status === "pending" && <p className="mt-5 text-slate-400">You will be able to add products once your shop is approved.</p>}
                 </div>
             )}
         </>
