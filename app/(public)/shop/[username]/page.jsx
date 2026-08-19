@@ -5,7 +5,6 @@ import { useEffect, useState } from "react"
 import { MailIcon, MapPinIcon } from "lucide-react"
 import Loading from "@/components/Loading"
 import Image from "next/image"
-import { dummyStoreData, productDummyData } from "@/assets/assets"
 
 export default function StoreShop() {
 
@@ -13,18 +12,55 @@ export default function StoreShop() {
     const [products, setProducts] = useState([])
     const [storeInfo, setStoreInfo] = useState(null)
     const [loading, setLoading] = useState(true)
+    const [error, setError] = useState("")
 
     const fetchStoreData = async () => {
-        setStoreInfo(dummyStoreData)
-        setProducts(productDummyData)
-        setLoading(false)
+        if (!username) {
+            return
+        }
+
+        try {
+            setLoading(true)
+            setError("")
+
+            const response = await fetch(`/api/store/data?username=${encodeURIComponent(username)}`)
+            const data = await response.json()
+
+            if (!response.ok) {
+                throw new Error(data.error || "Failed to fetch store")
+            }
+
+            setStoreInfo(data.store)
+            setProducts(Array.isArray(data.products) ? data.products : [])
+        } catch (error) {
+            setStoreInfo(null)
+            setProducts([])
+            setError(error.message || "Failed to fetch store")
+        } finally {
+            setLoading(false)
+        }
     }
 
     useEffect(() => {
         fetchStoreData()
-    }, [])
+    }, [username])
 
-    return !loading ? (
+    if (loading) {
+        return <Loading />
+    }
+
+    if (error) {
+        return (
+            <div className="min-h-[70vh] mx-6 flex items-center justify-center text-center">
+                <div>
+                    <h1 className="text-2xl font-semibold text-slate-800">Store not available</h1>
+                    <p className="mt-2 text-sm text-slate-500">{error}</p>
+                </div>
+            </div>
+        )
+    }
+
+    return (
         <div className="min-h-[70vh] mx-6">
 
             {/* Store Info Banner */}
@@ -60,9 +96,11 @@ export default function StoreShop() {
             <div className=" max-w-7xl mx-auto mb-40">
                 <h1 className="text-2xl mt-12">Shop <span className="text-slate-800 font-medium">Products</span></h1>
                 <div className="mt-5 grid grid-cols-2 sm:flex flex-wrap gap-6 xl:gap-12 mx-auto">
-                    {products.map((product) => <ProductCard key={product.id} product={product} />)}
+                    {products.length ? products.map((product) => <ProductCard key={product.id} product={product} />) : (
+                        <p className="col-span-2 text-sm text-slate-500">No products available from this store yet.</p>
+                    )}
                 </div>
             </div>
         </div>
-    ) : <Loading />
+    )
 }

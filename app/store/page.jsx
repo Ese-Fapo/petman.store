@@ -1,5 +1,4 @@
 'use client'
-import { dummyStoreDashboardData } from "@/assets/assets"
 import Loading from "@/components/Loading"
 import { CircleDollarSignIcon, ShoppingBasketIcon, StarIcon, TagsIcon } from "lucide-react"
 import Image from "next/image"
@@ -19,6 +18,7 @@ export default function Dashboard() {
         totalOrders: 0,
         ratings: [],
     })
+    const [error, setError] = useState("")
 
     const dashboardCardsData = [
         { title: 'Total Products', value: dashboardData.totalProducts, icon: ShoppingBasketIcon },
@@ -28,8 +28,28 @@ export default function Dashboard() {
     ]
 
     const fetchDashboardData = async () => {
-        setDashboardData(dummyStoreDashboardData)
-        setLoading(false)
+        try {
+            setLoading(true)
+            setError("")
+
+            const response = await fetch("/api/store/dashboard")
+            const data = await response.json()
+
+            if (!response.ok) {
+                throw new Error(data.error || "Failed to fetch dashboard data")
+            }
+
+            setDashboardData({
+                totalProducts: data.dashboardData?.totalProducts || 0,
+                totalEarnings: data.dashboardData?.totalEarnings || 0,
+                totalOrders: data.dashboardData?.totalOrders || 0,
+                ratings: Array.isArray(data.dashboardData?.ratings) ? data.dashboardData.ratings : [],
+            })
+        } catch (error) {
+            setError(error.message || "Failed to fetch dashboard data")
+        } finally {
+            setLoading(false)
+        }
     }
 
     useEffect(() => {
@@ -37,6 +57,15 @@ export default function Dashboard() {
     }, [])
 
     if (loading) return <Loading />
+
+    if (error) {
+        return (
+            <div className="text-slate-500 mb-28">
+                <h1 className="text-2xl">Seller <span className="text-slate-800 font-medium">Dashboard</span></h1>
+                <p className="mt-5 text-sm text-red-500">{error}</p>
+            </div>
+        )
+    }
 
     return (
         <div className=" text-slate-500 mb-28">
@@ -64,9 +93,13 @@ export default function Dashboard() {
                         <div key={index} className="flex max-sm:flex-col gap-5 sm:items-center justify-between py-6 border-b border-slate-200 text-sm text-slate-600 max-w-4xl">
                             <div>
                                 <div className="flex gap-3">
-                                    <Image src={review.user.image} alt="" className="w-10 aspect-square rounded-full" width={100} height={100} />
+                                    {review.user?.image ? (
+                                        <Image src={review.user.image} alt="" className="w-10 aspect-square rounded-full" width={100} height={100} />
+                                    ) : (
+                                        <div className="w-10 aspect-square rounded-full bg-slate-100" />
+                                    )}
                                     <div>
-                                        <p className="font-medium">{review.user.name}</p>
+                                        <p className="font-medium">{review.user?.name || "Customer"}</p>
                                         <p className="font-light text-slate-500">{new Date(review.createdAt).toDateString()}</p>
                                     </div>
                                 </div>
@@ -82,11 +115,16 @@ export default function Dashboard() {
                                         ))}
                                     </div>
                                 </div>
-                                <button onClick={() => router.push(`/product/${review.product.id}`)} className="bg-slate-100 px-5 py-2 hover:bg-slate-200 rounded transition-all">View Product</button>
+                                {review.product?.id && (
+                                    <button onClick={() => router.push(`/product/${review.product.id}`)} className="bg-slate-100 px-5 py-2 hover:bg-slate-200 rounded transition-all">View Product</button>
+                                )}
                             </div>
                         </div>
                     ))
                 }
+                {!dashboardData.ratings.length && (
+                    <p className="text-sm text-slate-400">No reviews yet.</p>
+                )}
             </div>
         </div>
     )
