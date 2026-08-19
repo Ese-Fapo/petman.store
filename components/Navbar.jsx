@@ -26,6 +26,10 @@ const Navbar = () => {
         }
     }
 
+    const handleLogin = () => {
+        openSignIn()
+    }
+
     const checkIsAdmin = async () => {
         if (!user) {
             setIsAdmin(false)
@@ -51,7 +55,7 @@ const Navbar = () => {
 
                     <Link href="/" className="relative text-3xl sm:text-4xl font-semibold tracking-normal text-slate-800">
                         JUST<span className="text-green-600">PETS</span><span className="text-green-600 text-5xl leading-0">.</span>
-                        <p className="absolute text-xs font-semibold -top-1 -right-12 px-3 p-0.5 rounded-full flex items-center gap-2 text-white bg-green-600">
+                        <p className="absolute pointer-events-none text-xs font-semibold -top-1 -right-12 px-3 p-0.5 rounded-full flex items-center gap-2 text-white bg-green-600">
                             c
                         </p>
                     </Link>
@@ -75,7 +79,7 @@ const Navbar = () => {
                         </Link>
                         {
                             !user ? (
-                                <button onClick={openSignIn} className="px-8 py-2 bg-green-600 hover:bg-green-700 transition text-white rounded-full">
+                                <button type="button" onClick={handleLogin} className="px-8 py-2 bg-green-600 hover:bg-green-700 transition text-white rounded-full">
                                     Login
                                 </button>
                             ) : (
@@ -94,7 +98,7 @@ const Navbar = () => {
                     </div>
 
                     {/* Mobile User Button  */}
-                    <div className="sm:hidden">
+                    <div className="relative z-10 shrink-0 sm:hidden">
                         {user ? (
                             <div>
                                 <UserButton>
@@ -109,7 +113,7 @@ const Navbar = () => {
                                 </UserButton>
                             </div>
                         ) : (
-                            <button onClick={openSignIn} className="px-7 py-1.5 bg-green-600 hover:bg-green-700 text-sm transition text-white rounded-full">
+                            <button type="button" onClick={handleLogin} className="px-7 py-1.5 bg-green-600 hover:bg-green-700 text-sm transition text-white rounded-full">
                                 Login
                             </button>
                         )}
