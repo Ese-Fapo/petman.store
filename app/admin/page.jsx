@@ -1,5 +1,4 @@
 'use client'
-import { dummyAdminDashboardData } from "@/assets/assets"
 import Loading from "@/components/Loading"
 import OrdersAreaChart from "@/components/OrdersAreaChart"
 import { CircleDollarSignIcon, ShoppingBasketIcon, StoreIcon, TagsIcon } from "lucide-react"
@@ -17,6 +16,7 @@ export default function AdminDashboard() {
         stores: 0,
         allOrders: [],
     })
+    const [error, setError] = useState("")
 
     const dashboardCardsData = [
         { title: 'Total Products', value: dashboardData.products, icon: ShoppingBasketIcon },
@@ -26,8 +26,29 @@ export default function AdminDashboard() {
     ]
 
     const fetchDashboardData = async () => {
-        setDashboardData(dummyAdminDashboardData)
-        setLoading(false)
+        try {
+            setLoading(true)
+            setError("")
+
+            const response = await fetch("/api/admin/dashboard")
+            const data = await response.json()
+
+            if (!response.ok) {
+                throw new Error(data.error || "Failed to fetch dashboard data")
+            }
+
+            setDashboardData({
+                products: data.dashboardData?.products || 0,
+                revenue: data.dashboardData?.revenue || 0,
+                orders: data.dashboardData?.orders || 0,
+                stores: data.dashboardData?.stores || 0,
+                allOrders: Array.isArray(data.dashboardData?.allOrders) ? data.dashboardData.allOrders : [],
+            })
+        } catch (error) {
+            setError(error.message || "Failed to fetch dashboard data")
+        } finally {
+            setLoading(false)
+        }
     }
 
     useEffect(() => {
@@ -35,6 +56,15 @@ export default function AdminDashboard() {
     }, [])
 
     if (loading) return <Loading />
+
+    if (error) {
+        return (
+            <div className="text-slate-500">
+                <h1 className="text-2xl">Admin <span className="text-slate-800 font-medium">Dashboard</span></h1>
+                <p className="mt-5 text-sm text-red-500">{error}</p>
+            </div>
+        )
+    }
 
     return (
         <div className="text-slate-500">

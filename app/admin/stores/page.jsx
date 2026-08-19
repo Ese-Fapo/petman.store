@@ -1,5 +1,4 @@
 'use client'
-import { storesDummyData } from "@/assets/assets"
 import StoreInfo from "@/components/admin/StoreInfo"
 import Loading from "@/components/Loading"
 import { useEffect, useState } from "react"
@@ -10,14 +9,47 @@ export default function AdminStores() {
     const [stores, setStores] = useState([])
     const [loading, setLoading] = useState(true)
 
+    // Load approved stores that admins can make live or inactive.
     const fetchStores = async () => {
-        setStores(storesDummyData)
-        setLoading(false)
+        try {
+            setLoading(true)
+            const response = await fetch("/api/admin/store")
+            const data = await response.json()
+
+            if (!response.ok) {
+                throw new Error(data.error || "Failed to fetch stores")
+            }
+
+            setStores(Array.isArray(data.stores) ? data.stores : [])
+        } catch (error) {
+            toast.error(error.message || "Failed to fetch stores")
+        } finally {
+            setLoading(false)
+        }
     }
 
-    const toggleIsActive = async (storeId) => {
-        // Logic to toggle the status of a store
+    // Toggle one store and replace it with the updated server response.
+    const toggleIsActive = async (storeId, isActive) => {
+        const response = await fetch("/api/admin/toggle-store", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ storeId, isActive }),
+        })
+        const data = await response.json()
 
+        if (!response.ok) {
+            throw new Error(data.error || "Failed to update store")
+        }
+
+        setStores((currentStores) =>
+            currentStores.map((store) =>
+                store.id === storeId ? data.store : store
+            )
+        )
+
+        return data.message
     }
 
     useEffect(() => {
@@ -39,7 +71,7 @@ export default function AdminStores() {
                             <div className="flex items-center gap-3 pt-2 flex-wrap">
                                 <p>Active</p>
                                 <label className="relative inline-flex items-center cursor-pointer text-gray-900">
-                                    <input type="checkbox" className="sr-only peer" onChange={() => toast.promise(toggleIsActive(store.id), { loading: "Updating data..." })} checked={store.isActive} />
+                                    <input type="checkbox" className="sr-only peer" onChange={(event) => toast.promise(toggleIsActive(store.id, event.target.checked), { loading: "Updating data..." })} checked={store.isActive} />
                                     <div className="w-9 h-5 bg-slate-300 rounded-full peer peer-checked:bg-green-600 transition-colors duration-200"></div>
                                     <span className="dot absolute left-1 top-1 w-3 h-3 bg-white rounded-full transition-transform duration-200 ease-in-out peer-checked:translate-x-4"></span>
                                 </label>

@@ -1,5 +1,4 @@
 'use client'
-import { storesDummyData } from "@/assets/assets"
 import StoreInfo from "@/components/admin/StoreInfo"
 import Loading from "@/components/Loading"
 import { useEffect, useState } from "react"
@@ -12,14 +11,42 @@ export default function AdminApprove() {
 
 
     const fetchStores = async () => {
-        setStores(storesDummyData)
-        setLoading(false)
+        try {
+            setLoading(true)
+            const response = await fetch("/api/admin/approve-store")
+            const data = await response.json()
+
+            if (!response.ok) {
+                throw new Error(data.error || "Failed to fetch store applications")
+            }
+
+            setStores(Array.isArray(data.stores) ? data.stores : [])
+        } catch (error) {
+            toast.error(error.message || "Failed to fetch store applications")
+        } finally {
+            setLoading(false)
+        }
     }
 
     const handleApprove = async ({ storeId, status }) => {
-        // Logic to approve a store
+        const response = await fetch("/api/admin/approve-store", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ storeId, status }),
+        })
+        const data = await response.json()
 
+        if (!response.ok) {
+            throw new Error(data.error || "Failed to update store application")
+        }
 
+        setStores((currentStores) =>
+            currentStores.filter((store) => store.id !== storeId)
+        )
+
+        return data.message
     }
 
     useEffect(() => {
