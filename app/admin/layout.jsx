@@ -8,10 +8,8 @@ export const metadata = {
 export default function RootAdminLayout({ children }) {
 
     return (
-        <>
-            <AdminLayout>
-                {children}
-            </AdminLayout>
-        </>
+        <AdminLayout>
+            {children}
+        </AdminLayout>
     );
 }

@@ -1,8 +1,8 @@
 'use client'
-import { PackageIcon, Search, ShoppingCart, ShoppingCartIcon } from "lucide-react";
+import { LayoutDashboardIcon, PackageIcon, Search, ShoppingCart, ShoppingCartIcon } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
 import { useUser, useClerk, UserButton } from "@clerk/nextjs"
 
@@ -14,6 +14,7 @@ const Navbar = () => {
     const router = useRouter();
 
     const [search, setSearch] = useState('')
+    const [isAdmin, setIsAdmin] = useState(false)
     const cartCount = useSelector(state => state.cart.total)
 
     const handleSearch = (e) => {
@@ -24,6 +25,24 @@ const Navbar = () => {
             router.push(`/shop?search=${encodeURIComponent(query)}`)
         }
     }
+
+    const checkIsAdmin = async () => {
+        if (!user) {
+            setIsAdmin(false)
+            return
+        }
+
+        try {
+            const response = await fetch("/api/admin/is-admin")
+            setIsAdmin(response.ok)
+        } catch {
+            setIsAdmin(false)
+        }
+    }
+
+    useEffect(() => {
+        checkIsAdmin()
+    }, [user])
 
     return (
         <nav className="relative bg-white">
@@ -62,6 +81,10 @@ const Navbar = () => {
                             ) : (
                                 <UserButton>
                                     <UserButton.MenuItems>
+                                        {isAdmin && (
+                                            <UserButton.Action labelIcon={<LayoutDashboardIcon size={16} />} label="Admin Dashboard" onClick={() =>
+                                                router.push('/admin')} />
+                                        )}
                                         <UserButton.Action labelIcon={<PackageIcon size={16} />} label="My Orders" onClick={() =>
                                             router.push('/orders')} />
                                     </UserButton.MenuItems>
@@ -76,6 +99,10 @@ const Navbar = () => {
                             <div>
                                 <UserButton>
                                     <UserButton.MenuItems>
+                                        {isAdmin && (
+                                            <UserButton.Action labelIcon={<LayoutDashboardIcon size={16} />} label="Admin Dashboard" onClick={() =>
+                                                router.push('/admin')} />
+                                        )}
                                         <UserButton.Action labelIcon={<ShoppingCartIcon size={16} />} label="Cart" onClick={() =>
                                             router.push('/cart')} />
                                     </UserButton.MenuItems>

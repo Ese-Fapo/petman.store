@@ -8,6 +8,7 @@ const json = (body, status = 200) => NextResponse.json(body, { status });
 // Get dashboard data for admin: total orders, stores, products, revenue, and chart orders.
 export async function GET() {
     try {
+        // Protect dashboard metrics so only configured admins can read platform totals.
         const { userId } = await auth();
 
         if (!userId) {
@@ -20,6 +21,7 @@ export async function GET() {
             return json({ error: "Not authorized" }, 401);
         }
 
+        // Fetch independent totals together to keep the dashboard route fast.
         const [products, stores, orders, revenue, allOrders] = await Promise.all([
             prisma.product.count(),
             prisma.store.count(),
@@ -39,6 +41,7 @@ export async function GET() {
             }),
         ]);
 
+        // Keep the response shape matched to app/admin/page.jsx.
         return json({
             dashboardData: {
                 products,

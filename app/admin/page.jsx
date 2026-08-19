@@ -25,6 +25,7 @@ export default function AdminDashboard() {
         { title: 'Total Stores', value: dashboardData.stores, icon: StoreIcon },
     ]
 
+    // Load real dashboard metrics from the admin-only API route.
     const fetchDashboardData = async () => {
         try {
             setLoading(true)
@@ -37,6 +38,7 @@ export default function AdminDashboard() {
                 throw new Error(data.error || "Failed to fetch dashboard data")
             }
 
+            // Normalize the API response so the UI always has safe fallback values.
             setDashboardData({
                 products: data.dashboardData?.products || 0,
                 revenue: data.dashboardData?.revenue || 0,

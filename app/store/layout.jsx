@@ -5,7 +5,7 @@ export const metadata = {
     description: "JUSTPETS store dashboard",
 };
 
-export default function RootAdminLayout({ children }) {
+export default function RootStoreLayout({ children }) {
 
     return (
         <>
