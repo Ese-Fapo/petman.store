@@ -4,12 +4,11 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
-import { useUser, useClerk, UserButton } from "@clerk/nextjs"
+import { SignInButton, useUser, UserButton } from "@clerk/nextjs"
 
 const Navbar = () => {
     
     const { user } = useUser();
-    const { openSignIn } = useClerk();
 
     const router = useRouter();
 
@@ -24,10 +23,6 @@ const Navbar = () => {
         if (query) {
             router.push(`/shop?search=${encodeURIComponent(query)}`)
         }
-    }
-
-    const handleLogin = () => {
-        openSignIn()
     }
 
     const checkIsAdmin = async () => {
@@ -79,9 +74,11 @@ const Navbar = () => {
                         </Link>
                         {
                             !user ? (
-                                <button type="button" onClick={handleLogin} className="px-8 py-2 bg-green-600 hover:bg-green-700 transition text-white rounded-full">
-                                    Login
-                                </button>
+                                <SignInButton mode="modal">
+                                    <button type="button" className="px-8 py-2 bg-green-600 hover:bg-green-700 transition text-white rounded-full">
+                                        Login
+                                    </button>
+                                </SignInButton>
                             ) : (
                                 <UserButton>
                                     <UserButton.MenuItems>
@@ -113,9 +110,11 @@ const Navbar = () => {
                                 </UserButton>
                             </div>
                         ) : (
-                            <button type="button" onClick={handleLogin} className="px-7 py-1.5 bg-green-600 hover:bg-green-700 text-sm transition text-white rounded-full">
-                                Login
-                            </button>
+                            <SignInButton mode="modal">
+                                <button type="button" className="px-7 py-1.5 bg-green-600 hover:bg-green-700 text-sm transition text-white rounded-full">
+                                    Login
+                                </button>
+                            </SignInButton>
                         )}
                     </div>
                 </div>

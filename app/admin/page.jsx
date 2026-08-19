@@ -28,7 +28,6 @@ export default function AdminDashboard() {
     // Load real dashboard metrics from the admin-only API route.
     const fetchDashboardData = async () => {
         try {
-            setLoading(true)
             setError("")
 
             const response = await fetch("/api/admin/dashboard")
