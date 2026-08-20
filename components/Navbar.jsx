@@ -2,6 +2,7 @@
 import {
     HomeIcon,
     LayoutDashboardIcon,
+    LogOutIcon,
     MenuIcon,
     PackageIcon,
     PlusCircleIcon,
@@ -16,11 +17,12 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
-import { SignInButton, useUser, UserButton } from "@clerk/nextjs"
+import { SignInButton, useClerk, useUser, UserButton } from "@clerk/nextjs"
 
 const Navbar = () => {
     
     const { user, isLoaded } = useUser();
+    const { signOut } = useClerk();
     const router = useRouter();
 
     const [search, setSearch] = useState('')
@@ -35,7 +37,9 @@ const Navbar = () => {
         { label: "Shop", href: "/shop", icon: ShoppingBagIcon },
         ...(isSeller
             ? [{ label: "Seller Dashboard", href: "/store", icon: StoreIcon, highlight: true }]
-            : user
+            : isAdmin
+                ? [{ label: "Shops", href: "/admin/stores", icon: StoreIcon, highlight: true }]
+                : user
                 ? [{ label: "Become a Seller", href: "/create-store", icon: StoreIcon }]
                 : []),
         { label: "Pet Care Club", href: "/pricing", icon: PackageIcon },
@@ -49,6 +53,11 @@ const Navbar = () => {
             setMobileMenuOpen(false)
             router.push(`/shop?search=${encodeURIComponent(query)}`)
         }
+    }
+
+    const handleSignOut = () => {
+        setMobileMenuOpen(false)
+        signOut({ redirectUrl: "/" })
     }
 
     const checkIsAdmin = async () => {
@@ -154,7 +163,11 @@ const Navbar = () => {
                                             <UserButton.Action labelIcon={<ShoppingBagIcon size={16} />} label="Store Orders" onClick={() =>
                                                 router.push('/store/orders')} />
                                         )}
-                                        {!isSeller && (
+                                        {isAdmin && !isSeller && (
+                                            <UserButton.Action labelIcon={<StoreIcon size={16} />} label="Shops" onClick={() =>
+                                                router.push('/admin/stores')} />
+                                        )}
+                                        {!isAdmin && !isSeller && (
                                             <UserButton.Action labelIcon={<StoreIcon size={16} />} label="Become a Seller" onClick={() =>
                                                 router.push('/create-store')} />
                                         )}
@@ -193,7 +206,11 @@ const Navbar = () => {
                                             <UserButton.Action labelIcon={<ShoppingBagIcon size={16} />} label="Store Orders" onClick={() =>
                                                 router.push('/store/orders')} />
                                         )}
-                                        {!isSeller && (
+                                        {isAdmin && !isSeller && (
+                                            <UserButton.Action labelIcon={<StoreIcon size={16} />} label="Shops" onClick={() =>
+                                                router.push('/admin/stores')} />
+                                        )}
+                                        {!isAdmin && !isSeller && (
                                             <UserButton.Action labelIcon={<StoreIcon size={16} />} label="Become a Seller" onClick={() =>
                                                 router.push('/create-store')} />
                                         )}
@@ -245,14 +262,26 @@ const Navbar = () => {
                                     {link.label}
                                 </Link>
                             ))}
-                            <Link
-                                href="/orders"
-                                onClick={() => setMobileMenuOpen(false)}
-                                className="flex min-h-11 items-center gap-3 rounded-md px-3 transition hover:bg-slate-50"
-                            >
-                                <PackageIcon size={19} />
-                                My Orders
-                            </Link>
+                            {user && (
+                                <>
+                                    <Link
+                                        href="/orders"
+                                        onClick={() => setMobileMenuOpen(false)}
+                                        className="flex min-h-11 items-center gap-3 rounded-md px-3 transition hover:bg-slate-50"
+                                    >
+                                        <PackageIcon size={19} />
+                                        My Orders
+                                    </Link>
+                                    <button
+                                        type="button"
+                                        onClick={handleSignOut}
+                                        className="flex min-h-11 w-full items-center gap-3 rounded-md px-3 text-left text-slate-600 transition hover:bg-slate-50"
+                                    >
+                                        <LogOutIcon size={19} />
+                                        Sign out
+                                    </button>
+                                </>
+                            )}
                         </div>
                     </div>
                 </div>

@@ -50,7 +50,7 @@ const Footer = () => {
                         <p className="max-w-[410px] mt-6 text-sm">Welcome to JUSTPETS, an Ireland-based pet shop for food, toys, bowls, treats, and care essentials for the pets who make the house feel like home.</p>
                         <Link href="/create-store" className="mt-5 inline-flex items-center gap-2 rounded-md bg-amber-500 px-4 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-amber-600">
                             <Store size={16} />
-                            Create Your Own Shop
+                            Become a Seller
                         </Link>
                         <div className="flex items-center gap-3 mt-5">
                             {socialIcons.map((item, i) => (
