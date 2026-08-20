@@ -3,31 +3,61 @@ import { useEffect, useState } from "react"
 import { format } from "date-fns"
 import toast from "react-hot-toast"
 import { DeleteIcon } from "lucide-react"
-import { couponDummyData } from "@/assets/assets"
+
+const defaultCoupon = {
+    code: '',
+    description: '',
+    discount: '',
+    forNewUser: false,
+    forMember: false,
+    isPublic: false,
+    expiresAt: format(new Date(), 'yyyy-MM-dd')
+}
 
 export default function AdminCoupons() {
 
     const [coupons, setCoupons] = useState([])
-
-    const [newCoupon, setNewCoupon] = useState({
-        code: '',
-        description: '',
-        discount: '',
-        forNewUser: false,
-        forMember: false,
-        isPublic: false,
-        expiresAt: new Date()
-    })
+    const [newCoupon, setNewCoupon] = useState(defaultCoupon)
+    const [loading, setLoading] = useState(true)
 
     const fetchCoupons = async () => {
-        setCoupons(couponDummyData)
+        try {
+            setLoading(true)
+            const response = await fetch("/api/coupon")
+            const data = await response.json()
+
+            if (!response.ok) {
+                throw new Error(data.error || "Failed to fetch coupons")
+            }
+
+            setCoupons(Array.isArray(data.coupons) ? data.coupons : [])
+        } catch (error) {
+            toast.error(error.message || "Failed to fetch coupons")
+        } finally {
+            setLoading(false)
+        }
     }
 
     const handleAddCoupon = async (e) => {
         e.preventDefault()
-        // Logic to add a coupon
 
+        const response = await fetch("/api/coupon", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ coupon: newCoupon }),
+        })
+        const data = await response.json()
 
+        if (!response.ok) {
+            throw new Error(data.error || "Failed to add coupon")
+        }
+
+        setCoupons((currentCoupons) => [data.coupon, ...currentCoupons])
+        setNewCoupon(defaultCoupon)
+
+        return data.message
     }
 
     const handleChange = (e) => {
@@ -35,9 +65,20 @@ export default function AdminCoupons() {
     }
 
     const deleteCoupon = async (code) => {
-        // Logic to delete a coupon
+        const response = await fetch(`/api/coupon?code=${encodeURIComponent(code)}`, {
+            method: "DELETE",
+        })
+        const data = await response.json()
 
+        if (!response.ok) {
+            throw new Error(data.error || "Failed to delete coupon")
+        }
 
+        setCoupons((currentCoupons) =>
+            currentCoupons.filter((coupon) => coupon.code !== code)
+        )
+
+        return data.message
     }
 
     useEffect(() => {
@@ -65,7 +106,7 @@ export default function AdminCoupons() {
                 <label>
                     <p className="mt-3">Coupon Expiry Date</p>
                     <input type="date" placeholder="Coupon Expires At" className="w-full mt-1 p-2 border border-slate-200 outline-slate-400 rounded-md"
-                        name="expiresAt" value={format(newCoupon.expiresAt, 'yyyy-MM-dd')} onChange={handleChange}
+                        name="expiresAt" value={newCoupon.expiresAt} onChange={handleChange} required
                     />
                 </label>
 
@@ -92,6 +133,17 @@ export default function AdminCoupons() {
                         </label>
                         <p>For Member</p>
                     </div>
+                    <div className="flex gap-2 mt-3">
+                        <label className="relative inline-flex items-center cursor-pointer text-gray-900 gap-3">
+                            <input type="checkbox" className="sr-only peer"
+                                name="isPublic" checked={newCoupon.isPublic}
+                                onChange={(e) => setNewCoupon({ ...newCoupon, isPublic: e.target.checked })}
+                            />
+                            <div className="w-11 h-6 bg-slate-300 rounded-full peer peer-checked:bg-green-600 transition-colors duration-200"></div>
+                            <span className="dot absolute left-1 top-1 w-4 h-4 bg-white rounded-full transition-transform duration-200 ease-in-out peer-checked:translate-x-5"></span>
+                        </label>
+                        <p>Public</p>
+                    </div>
                 </div>
                 <button className="mt-4 p-2 px-10 rounded bg-slate-700 text-white active:scale-95 transition">Add Coupon</button>
             </form>
@@ -109,23 +161,33 @@ export default function AdminCoupons() {
                                 <th className="py-3 px-4 text-left font-semibold text-slate-600">Expires At</th>
                                 <th className="py-3 px-4 text-left font-semibold text-slate-600">New User</th>
                                 <th className="py-3 px-4 text-left font-semibold text-slate-600">For Member</th>
+                                <th className="py-3 px-4 text-left font-semibold text-slate-600">Public</th>
                                 <th className="py-3 px-4 text-left font-semibold text-slate-600">Action</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-200">
-                            {coupons.map((coupon) => (
+                            {loading ? (
+                                <tr>
+                                    <td colSpan={8} className="py-8 px-4 text-center text-slate-400">Loading coupons...</td>
+                                </tr>
+                            ) : coupons.length ? coupons.map((coupon) => (
                                 <tr key={coupon.code} className="hover:bg-slate-50">
                                     <td className="py-3 px-4 font-medium text-slate-800">{coupon.code}</td>
                                     <td className="py-3 px-4 text-slate-800">{coupon.description}</td>
                                     <td className="py-3 px-4 text-slate-800">{coupon.discount}%</td>
-                                    <td className="py-3 px-4 text-slate-800">{format(coupon.expiresAt, 'yyyy-MM-dd')}</td>
+                                    <td className="py-3 px-4 text-slate-800">{format(new Date(coupon.expiresAt), 'yyyy-MM-dd')}</td>
                                     <td className="py-3 px-4 text-slate-800">{coupon.forNewUser ? 'Yes' : 'No'}</td>
                                     <td className="py-3 px-4 text-slate-800">{coupon.forMember ? 'Yes' : 'No'}</td>
+                                    <td className="py-3 px-4 text-slate-800">{coupon.isPublic ? 'Yes' : 'No'}</td>
                                     <td className="py-3 px-4 text-slate-800">
                                         <DeleteIcon onClick={() => toast.promise(deleteCoupon(coupon.code), { loading: "Deleting coupon..." })} className="w-5 h-5 text-red-500 hover:text-red-800 cursor-pointer" />
                                     </td>
                                 </tr>
-                            ))}
+                            )) : (
+                                <tr>
+                                    <td colSpan={8} className="py-8 px-4 text-center text-slate-400">No coupons available</td>
+                                </tr>
+                            )}
                         </tbody>
                     </table>
                 </div>
