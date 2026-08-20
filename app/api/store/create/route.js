@@ -128,7 +128,8 @@ export async function GET() {
 
     return json({
       registered: Boolean(store),
-      alreadySubmitted: Boolean(store),
+      alreadySubmitted: Boolean(store && store.status !== "rejected"),
+      canReapply: store?.status === "rejected",
       store,
       status: store?.status ?? "not_registered",
     });
@@ -147,10 +148,10 @@ export async function POST(request) {
       return json({ error: "Unauthorized" }, 401);
     }
 
-    // If the user already registered a store, return that store's status immediately.
+    // Approved and pending stores should not create duplicate applications.
     const registeredStore = await getRegisteredStoreStatus(userId);
 
-    if (registeredStore) {
+    if (registeredStore && registeredStore.status !== "rejected") {
       return json({
         message: "Store already registered",
         registered: true,
@@ -186,7 +187,7 @@ export async function POST(request) {
       select: { id: true },
     });
 
-    if (existingUsername) {
+    if (existingUsername && existingUsername.id !== registeredStore?.id) {
       return json({ error: "Username is already taken" }, 409);
     }
 
@@ -194,17 +195,40 @@ export async function POST(request) {
 
     // Save the store after the logo upload succeeds.
     try {
-      const store = await prisma.store.create({
-        data: {
-          userId,
-          name,
-          username,
-          description,
-          email,
-          contact,
-          address,
-          logo: logo.url,
-        },
+      const store = registeredStore?.status === "rejected"
+        ? await prisma.store.update({
+          where: { id: registeredStore.id },
+          data: {
+            name,
+            username,
+            description,
+            email,
+            contact,
+            address,
+            logo: logo.url,
+            status: "pending",
+            isActive: false,
+          },
+          select: {
+            id: true,
+            name: true,
+            username: true,
+            status: true,
+            isActive: true,
+            createdAt: true,
+          },
+        })
+        : await prisma.store.create({
+          data: {
+            userId,
+            name,
+            username,
+            description,
+            email,
+            contact,
+            address,
+            logo: logo.url,
+          },
         select: {
           id: true,
           name: true,
@@ -213,13 +237,15 @@ export async function POST(request) {
           isActive: true,
           createdAt: true,
         },
-      });
+        });
 
       return json({
-        message: "Store application submitted successfully",
+        message: registeredStore?.status === "rejected"
+          ? "Store application resubmitted successfully"
+          : "Store application submitted successfully",
         store,
         status: store.status,
-      }, 201);
+      }, registeredStore?.status === "rejected" ? 200 : 201);
     } catch (error) {
       // If Prisma rejects the create, remove the logo we just uploaded.
       await deleteUploadedLogo(logo.fileId);

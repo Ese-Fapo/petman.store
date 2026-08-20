@@ -1,5 +1,5 @@
 'use client'
-import { LayoutDashboardIcon, PackageIcon, Search, ShoppingCart, ShoppingCartIcon } from "lucide-react";
+import { LayoutDashboardIcon, PackageIcon, PlusCircleIcon, Search, ShoppingBagIcon, ShoppingCart, ShoppingCartIcon, StoreIcon } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -14,7 +14,9 @@ const Navbar = () => {
 
     const [search, setSearch] = useState('')
     const [isAdmin, setIsAdmin] = useState(false)
+    const [sellerStore, setSellerStore] = useState(null)
     const cartCount = useSelector(state => state.cart.total)
+    const isSeller = Boolean(sellerStore)
 
     const handleSearch = (e) => {
         e.preventDefault()
@@ -39,8 +41,24 @@ const Navbar = () => {
         }
     }
 
+    const checkIsSeller = async () => {
+        if (!user) {
+            setSellerStore(null)
+            return
+        }
+
+        try {
+            const response = await fetch("/api/store/is-seller")
+            const data = await response.json()
+            setSellerStore(response.ok && data.isSeller ? data.storeInfo : null)
+        } catch {
+            setSellerStore(null)
+        }
+    }
+
     useEffect(() => {
         checkIsAdmin()
+        checkIsSeller()
     }, [user])
 
     return (
@@ -59,6 +77,17 @@ const Navbar = () => {
                     <div className="hidden sm:flex items-center gap-4 lg:gap-8 text-slate-600">
                         <Link href="/">Home</Link>
                         <Link href="/shop">Shop</Link>
+                        {isSeller ? (
+                            <Link href="/store" className="flex items-center gap-1.5 text-green-700 font-medium">
+                                <StoreIcon size={18} />
+                                Seller
+                            </Link>
+                        ) : user ? (
+                            <Link href="/create-store" className="flex items-center gap-1.5">
+                                <StoreIcon size={18} />
+                                Sell
+                            </Link>
+                        ) : null}
                         <Link href="/">About</Link>
                         <Link href="/">Contact</Link>
 
@@ -86,6 +115,22 @@ const Navbar = () => {
                                             <UserButton.Action labelIcon={<LayoutDashboardIcon size={16} />} label="Admin Dashboard" onClick={() =>
                                                 router.push('/admin')} />
                                         )}
+                                        {isSeller && (
+                                            <UserButton.Action labelIcon={<StoreIcon size={16} />} label={sellerStore?.name || "Store Dashboard"} onClick={() =>
+                                                router.push('/store')} />
+                                        )}
+                                        {isSeller && (
+                                            <UserButton.Action labelIcon={<PlusCircleIcon size={16} />} label="Add Product" onClick={() =>
+                                                router.push('/store/add-product')} />
+                                        )}
+                                        {isSeller && (
+                                            <UserButton.Action labelIcon={<ShoppingBagIcon size={16} />} label="Store Orders" onClick={() =>
+                                                router.push('/store/orders')} />
+                                        )}
+                                        {!isSeller && (
+                                            <UserButton.Action labelIcon={<StoreIcon size={16} />} label="Become a Seller" onClick={() =>
+                                                router.push('/create-store')} />
+                                        )}
                                         <UserButton.Action labelIcon={<PackageIcon size={16} />} label="My Orders" onClick={() =>
                                             router.push('/orders')} />
                                     </UserButton.MenuItems>
@@ -104,8 +149,26 @@ const Navbar = () => {
                                             <UserButton.Action labelIcon={<LayoutDashboardIcon size={16} />} label="Admin Dashboard" onClick={() =>
                                                 router.push('/admin')} />
                                         )}
+                                        {isSeller && (
+                                            <UserButton.Action labelIcon={<StoreIcon size={16} />} label={sellerStore?.name || "Store Dashboard"} onClick={() =>
+                                                router.push('/store')} />
+                                        )}
+                                        {isSeller && (
+                                            <UserButton.Action labelIcon={<PlusCircleIcon size={16} />} label="Add Product" onClick={() =>
+                                                router.push('/store/add-product')} />
+                                        )}
+                                        {isSeller && (
+                                            <UserButton.Action labelIcon={<ShoppingBagIcon size={16} />} label="Store Orders" onClick={() =>
+                                                router.push('/store/orders')} />
+                                        )}
+                                        {!isSeller && (
+                                            <UserButton.Action labelIcon={<StoreIcon size={16} />} label="Become a Seller" onClick={() =>
+                                                router.push('/create-store')} />
+                                        )}
                                         <UserButton.Action labelIcon={<ShoppingCartIcon size={16} />} label="Cart" onClick={() =>
                                             router.push('/cart')} />
+                                        <UserButton.Action labelIcon={<PackageIcon size={16} />} label="My Orders" onClick={() =>
+                                            router.push('/orders')} />
                                     </UserButton.MenuItems>
                                 </UserButton>
                             </div>

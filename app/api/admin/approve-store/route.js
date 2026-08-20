@@ -58,6 +58,23 @@ export async function POST(request) {
             return json({ error: "Invalid status" }, 400);
         }
 
+        const existingStore = await prisma.store.findUnique({
+            where: { id: storeId },
+            select: { status: true },
+        });
+
+        if (!existingStore) {
+            return json({ error: "Store not found" }, 404);
+        }
+
+        if (existingStore.status === "approved") {
+            return json({ error: "Approved stores can be managed from the stores page" }, 400);
+        }
+
+        if (existingStore.status === "rejected" && status !== "approved") {
+            return json({ error: "Rejected stores can only be approved from this page" }, 400);
+        }
+
         const store = await prisma.store.update({
             where: { id: storeId },
             data: {
@@ -81,7 +98,7 @@ export async function POST(request) {
     }
 }
 
-// Get all pending and rejected store applications.
+// Get pending and rejected applications so admins can change their mind later.
 export async function GET() {
     try {
         const isAdmin = await getAdminAccess();

@@ -10,6 +10,8 @@ export default function AdminApprove() {
     const [loading, setLoading] = useState(true)
 
 
+    // Load pending and rejected store applications for the admin review queue.
+
     const fetchStores = async () => {
         try {
             setLoading(true)
@@ -28,6 +30,8 @@ export default function AdminApprove() {
         }
     }
 
+    // Submit the admin decision, then remove the handled store from the list.
+
     const handleApprove = async ({ storeId, status }) => {
         const response = await fetch("/api/admin/approve-store", {
             method: "POST",
@@ -42,14 +46,23 @@ export default function AdminApprove() {
             throw new Error(data.error || "Failed to update store application")
         }
 
-        setStores((currentStores) =>
-            currentStores.filter((store) => store.id !== storeId)
-        )
+        setStores((currentStores) => {
+            if (status === "approved") {
+                return currentStores.filter((store) => store.id !== storeId)
+            }
+
+            return currentStores.map((store) =>
+                store.id === storeId ? data.store : store
+            )
+        })
 
         return data.message
     }
 
     useEffect(() => {
+
+        // Fetch once when the approval page is opened.
+
         fetchStores()
     }, [])
 
@@ -60,6 +73,9 @@ export default function AdminApprove() {
             {stores.length ? (
                 <div className="flex flex-col gap-4 mt-4">
                     {stores.map((store) => (
+
+                        // Each pending or rejected store is shown with details and decision actions.
+                        
                         <div key={store.id} className="bg-white border rounded-lg shadow-sm p-6 flex max-md:flex-col gap-4 md:items-end max-w-4xl" >
                             {/* Store Info */}
                             <StoreInfo store={store} />
@@ -77,24 +93,26 @@ export default function AdminApprove() {
                                 >
                                     Approve
                                 </button>
-                                <button
-                                    type="button"
-                                    onClick={() => toast.promise(handleApprove({ storeId: store.id, status: 'rejected' }), {
-                                        loading: "Rejecting store...",
-                                        success: (message) => message,
-                                        error: (error) => error.message || "Failed to reject store",
-                                    })}
-                                    className="px-4 py-2 bg-slate-500 text-white rounded hover:bg-slate-600 text-sm"
-                                >
-                                    Reject
-                                </button>
+                                {store.status === "pending" && (
+                                    <button
+                                        type="button"
+                                        onClick={() => toast.promise(handleApprove({ storeId: store.id, status: 'rejected' }), {
+                                            loading: "Rejecting store...",
+                                            success: (message) => message,
+                                            error: (error) => error.message || "Failed to reject store",
+                                        })}
+                                        className="px-4 py-2 bg-slate-500 text-white rounded hover:bg-slate-600 text-sm"
+                                    >
+                                        Reject
+                                    </button>
+                                )}
                             </div>
                         </div>
                     ))}
 
                 </div>) : (
                 <div className="flex items-center justify-center h-80">
-                    <h1 className="text-3xl text-slate-400 font-medium">No Application Pending</h1>
+                    <h1 className="text-3xl text-slate-400 font-medium">No Applications to Review</h1>
                 </div>
             )}
         </div>

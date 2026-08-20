@@ -13,6 +13,7 @@ export default function CreateStore() {
     const redirectTimerRef = useRef(null)
     const [alreadySubmitted, setAlreadySubmitted] = useState(false)
     const [status, setStatus] = useState("")
+    const [canReapply, setCanReapply] = useState(false)
     const [loading, setLoading] = useState(true)
     const [message, setMessage] = useState("")
 
@@ -45,7 +46,10 @@ export default function CreateStore() {
     const setApplicationStatus = (data) => {
         const nextStatus = data.status || "pending"
 
-        setAlreadySubmitted(Boolean(data.alreadySubmitted || data.registered || nextStatus !== "not_registered"))
+        const nextCanReapply = Boolean(data.canReapply || nextStatus === "rejected")
+
+        setCanReapply(nextCanReapply)
+        setAlreadySubmitted(!nextCanReapply && Boolean(data.alreadySubmitted || data.registered || nextStatus !== "not_registered"))
         setStatus(nextStatus)
         setMessage(getStatusMessage(nextStatus))
 
@@ -71,7 +75,7 @@ export default function CreateStore() {
                 return
             }
 
-            if (data.alreadySubmitted) {
+            if (data.alreadySubmitted || data.canReapply) {
                 setApplicationStatus(data)
             }
         } catch (error) {
@@ -137,8 +141,12 @@ export default function CreateStore() {
                     <form onSubmit={e => toast.promise(onSubmitHandler(e), { loading: "Submitting data..." })} className="max-w-7xl mx-auto flex flex-col items-start gap-3 text-slate-500">
                         {/* Title */}
                         <div>
-                            <h1 className="text-3xl ">Add Your <span className="text-slate-800 font-medium">Store</span></h1>
-                            <p className="max-w-lg">To become a seller on JUSTPETS, submit your pet shop details for review. Your store will be activated after admin verification.</p>
+                            <h1 className="text-3xl ">{canReapply ? "Reapply For Your" : "Add Your"} <span className="text-slate-800 font-medium">Store</span></h1>
+                            <p className="max-w-lg">
+                                {canReapply
+                                    ? "Your previous shop application was not approved. Update your details and submit again for admin review."
+                                    : "To become a seller on JUSTPETS, submit your pet shop details for review. Your store will be activated after admin verification."}
+                            </p>
                         </div>
 
                         <label className="mt-10 cursor-pointer">
@@ -165,7 +173,7 @@ export default function CreateStore() {
                         <p>Address</p>
                         <textarea name="address" onChange={onChangeHandler} value={storeInfo.address} rows={5} placeholder="Enter your store address" className="border border-slate-300 outline-slate-400 w-full max-w-lg p-2 rounded resize-none" />
 
-                        <button className="bg-slate-800 text-white px-12 py-2 rounded mt-10 mb-40 active:scale-95 hover:bg-slate-900 transition ">Submit</button>
+                        <button className="bg-slate-800 text-white px-12 py-2 rounded mt-10 mb-40 active:scale-95 hover:bg-slate-900 transition ">{canReapply ? "Resubmit" : "Submit"}</button>
                     </form>
                 </div>
             ) : (
