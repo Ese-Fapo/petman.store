@@ -69,7 +69,11 @@ export default function StoreAddProduct() {
 
 
     return (
-        <form onSubmit={e => toast.promise(onSubmitHandler(e), { loading: "Adding Product..." })} className="text-slate-500 mb-28">
+        <form onSubmit={e => toast.promise(onSubmitHandler(e), {
+            loading: "Adding Product...",
+            success: (message) => message || "Product added successfully",
+            error: (error) => error.message || "Failed to add product",
+        })} className="text-slate-500 mb-28">
             <h1 className="text-2xl">Add New <span className="text-slate-800 font-medium">Products</span></h1>
             <p className="mt-7">Product Images</p>
 

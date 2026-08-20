@@ -23,13 +23,17 @@ const getRequiredNumber = (formData, key) => {
 };
 
 // Validate product images before uploading them to ImageKit.
-const getProductImages = (formData) => {
+const getProductImages = (formData, { required = true } = {}) => {
   const images = formData
     .getAll("images")
     .filter((image) => typeof File !== "undefined" && image instanceof File && image.size > 0);
 
   if (images.length < 1) {
-    throw new Error("MISSING_IMAGES");
+    if (required) {
+      throw new Error("MISSING_IMAGES");
+    }
+
+    return [];
   }
 
   if (images.length > MAX_PRODUCT_IMAGES) {
@@ -134,7 +138,7 @@ export async function POST(request) {
     const category = getRequiredText(formData, "category");
     const mrp = getRequiredNumber(formData, "mrp");
     const price = getRequiredNumber(formData, "price");
-    const images = getProductImages(formData);
+    const images = getProductImages(formData, { required: true });
 
     if (!name || !description || !category || mrp === null || price === null) {
       return json({ error: "Missing product details" }, 400);
@@ -209,6 +213,114 @@ export async function POST(request) {
 
     console.error("Failed to add product:", error);
     return json({ error: "Failed to add product" }, 500);
+  }
+}
+
+// Update an existing product owned by the current seller.
+export async function PUT(request) {
+  let uploadedImages = [];
+
+  try {
+    const storeId = await getSellerStoreId();
+
+    if (!storeId) {
+      return json({ error: "Not authorized" }, 401);
+    }
+
+    const formData = await request.formData();
+    const productId = getRequiredText(formData, "productId");
+    const name = getRequiredText(formData, "name");
+    const description = getRequiredText(formData, "description");
+    const category = getRequiredText(formData, "category");
+    const mrp = getRequiredNumber(formData, "mrp");
+    const price = getRequiredNumber(formData, "price");
+    const images = getProductImages(formData, { required: false });
+
+    if (!productId || !name || !description || !category || mrp === null || price === null) {
+      return json({ error: "Missing product details" }, 400);
+    }
+
+    if (price > mrp) {
+      return json({ error: "Offer price cannot be greater than actual price" }, 400);
+    }
+
+    const existingProduct = await prisma.product.findFirst({
+      where: {
+        id: productId,
+        storeId,
+      },
+      select: {
+        id: true,
+        images: true,
+      },
+    });
+
+    if (!existingProduct) {
+      return json({ error: "Product not found" }, 404);
+    }
+
+    for (const [index, image] of images.entries()) {
+      const uploadedImage = await uploadProductImage(image, storeId, index + 1);
+      uploadedImages.push(uploadedImage);
+    }
+
+    const product = await prisma.product.update({
+      where: { id: productId },
+      data: {
+        name,
+        description,
+        mrp,
+        price,
+        category,
+        ...(uploadedImages.length > 0
+          ? { images: uploadedImages.map((image) => image.url) }
+          : {}),
+      },
+      select: {
+        id: true,
+        name: true,
+        description: true,
+        mrp: true,
+        price: true,
+        images: true,
+        category: true,
+        inStock: true,
+        createdAt: true,
+        updatedAt: true,
+      },
+    });
+
+    return json({
+      message: "Product updated successfully",
+      product,
+    });
+  } catch (error) {
+    if (uploadedImages.length > 0) {
+      await deleteUploadedImages(uploadedImages);
+    }
+
+    if (error.message === "TOO_MANY_IMAGES") {
+      return json({ error: `You can upload up to ${MAX_PRODUCT_IMAGES} product images` }, 400);
+    }
+
+    if (error.message === "INVALID_IMAGE_TYPE") {
+      return json({ error: "Product images must be image files" }, 400);
+    }
+
+    if (error.message === "IMAGE_TOO_LARGE") {
+      return json({ error: "Each product image must be 5MB or smaller" }, 400);
+    }
+
+    if (error.message === "IMAGEKIT_NOT_CONFIGURED") {
+      return json({ error: "ImageKit is not configured" }, 500);
+    }
+
+    if (error.message === "IMAGEKIT_UPLOAD_FAILED") {
+      return json({ error: "Failed to upload product images" }, 502);
+    }
+
+    console.error("Failed to update product:", error);
+    return json({ error: "Failed to update product" }, 500);
   }
 }
 

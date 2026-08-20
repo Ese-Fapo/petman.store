@@ -1,6 +1,7 @@
 import { inngest } from './client'
 import { prisma } from '@/lib/prisma'
 
+
 const getUserData = (data) => ({
   id: data.id,
   email: data.email_addresses?.[0]?.email_address ?? '',
@@ -39,6 +40,31 @@ export const syncUserDeletion = inngest.createFunction(
   async ({ event }) => {
     await prisma.user.delete({
       where: { id: event.data.id },
+    })
+  }
+)
+// inngest function to delete coupon on expiry
+export const deleteCouponOnExpiry = inngest.createFunction(
+  { id: 'delete-coupon-on-expiry', triggers: { event: 'app/coupon.expired' } },
+  async ({ event, step }) => {
+    const { data } = event
+    const expiryDate = new Date(data.expiresAt)
+
+    if (!data.code || Number.isNaN(expiryDate.getTime())) {
+      throw new Error('Invalid coupon expiry event payload')
+    }
+
+    await step.sleepUntil('wait-for-expiry', expiryDate)
+
+    await step.run('delete-coupon-from-database', async () => {
+      await prisma.coupon.deleteMany({
+        where: {
+          code: data.code,
+          expiresAt: {
+            lte: new Date(),
+          },
+        },
+      })
     })
   }
 )

@@ -88,40 +88,35 @@ export default function CreateStore() {
     const onSubmitHandler = async (e) => {
         e.preventDefault()
         if (!user) {
-            return toast('Please login to continue')
+            throw new Error('Please login to continue')
         }
 
-        try {
-            const formData = new FormData()
-            formData.append("name", storeInfo.name)
-            formData.append("description", storeInfo.description)
-            formData.append("username", storeInfo.username)
-            formData.append("email", storeInfo.email)
-            formData.append("contact", storeInfo.contact)
-            formData.append("address", storeInfo.address)
-            formData.append("image", storeInfo.image)
+        const formData = new FormData()
+        formData.append("name", storeInfo.name)
+        formData.append("description", storeInfo.description)
+        formData.append("username", storeInfo.username)
+        formData.append("email", storeInfo.email)
+        formData.append("contact", storeInfo.contact)
+        formData.append("address", storeInfo.address)
+        formData.append("image", storeInfo.image)
 
-            const response = await fetch('/api/store/create', {
-                method: "POST",
-                body: formData,
-            })
-            const data = await response.json()
+        const response = await fetch('/api/store/create', {
+            method: "POST",
+            body: formData,
+        })
+        const data = await response.json()
 
-            if (!response.ok) {
-                throw new Error(data.error || "Failed to submit store")
-            }
-
-            toast.success(data.message)
-            setApplicationStatus({
-                ...data,
-                alreadySubmitted: true,
-                status: data.status || "pending",
-            })
-
-        } catch (error) {
-            toast.error(error.message || "Failed to submit store")
+        if (!response.ok) {
+            throw new Error(data.error || "Failed to submit store")
         }
 
+        setApplicationStatus({
+            ...data,
+            alreadySubmitted: true,
+            status: data.status || "pending",
+        })
+
+        return data.message
     }
 
     useEffect(() => {
@@ -138,7 +133,11 @@ export default function CreateStore() {
         <>
             {!alreadySubmitted ? (
                 <div className="mx-6 min-h-[70vh] my-16">
-                    <form onSubmit={e => toast.promise(onSubmitHandler(e), { loading: "Submitting data..." })} className="max-w-7xl mx-auto flex flex-col items-start gap-3 text-slate-500">
+                    <form onSubmit={e => toast.promise(onSubmitHandler(e), {
+                        loading: "Submitting data...",
+                        success: (message) => message || "Store application submitted",
+                        error: (error) => error.message || "Failed to submit store",
+                    })} className="max-w-7xl mx-auto flex flex-col items-start gap-3 text-slate-500">
                         {/* Title */}
                         <div>
                             <h1 className="text-3xl ">{canReapply ? "Reapply For Your" : "Add Your"} <span className="text-slate-800 font-medium">Store</span></h1>

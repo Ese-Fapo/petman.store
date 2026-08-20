@@ -71,7 +71,11 @@ export default function AdminStores() {
                             <div className="flex items-center gap-3 pt-2 flex-wrap">
                                 <p>Active</p>
                                 <label className="relative inline-flex items-center cursor-pointer text-gray-900">
-                                    <input type="checkbox" className="sr-only peer" onChange={(event) => toast.promise(toggleIsActive(store.id, event.target.checked), { loading: "Updating data..." })} checked={store.isActive} />
+                                    <input type="checkbox" className="sr-only peer" onChange={(event) => toast.promise(toggleIsActive(store.id, event.target.checked), {
+                                        loading: "Updating data...",
+                                        success: (message) => message || "Store updated successfully",
+                                        error: (error) => error.message || "Failed to update store",
+                                    })} checked={store.isActive} />
                                     <div className="w-9 h-5 bg-slate-300 rounded-full peer peer-checked:bg-green-600 transition-colors duration-200"></div>
                                     <span className="dot absolute left-1 top-1 w-3 h-3 bg-white rounded-full transition-transform duration-200 ease-in-out peer-checked:translate-x-4"></span>
                                 </label>

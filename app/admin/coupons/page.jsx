@@ -20,6 +20,7 @@ export default function AdminCoupons() {
     const [newCoupon, setNewCoupon] = useState(defaultCoupon)
     const [loading, setLoading] = useState(true)
 
+    // Load all coupons so admins can review current discounts.
     const fetchCoupons = async () => {
         try {
             setLoading(true)
@@ -38,6 +39,7 @@ export default function AdminCoupons() {
         }
     }
 
+    // Create a coupon, then prepend the server response to the visible list.
     const handleAddCoupon = async (e) => {
         e.preventDefault()
 
@@ -60,10 +62,12 @@ export default function AdminCoupons() {
         return data.message
     }
 
+    // Keep text and number fields in sync with the new coupon draft.
     const handleChange = (e) => {
         setNewCoupon({ ...newCoupon, [e.target.name]: e.target.value })
     }
 
+    // Delete a coupon by code and remove it from the local table state.
     const deleteCoupon = async (code) => {
         const response = await fetch(`/api/coupon?code=${encodeURIComponent(code)}`, {
             method: "DELETE",
@@ -89,7 +93,11 @@ export default function AdminCoupons() {
         <div className="text-slate-500 mb-40">
 
             {/* Add Coupon */}
-            <form onSubmit={(e) => toast.promise(handleAddCoupon(e), { loading: "Adding coupon..." })} className="max-w-sm text-sm">
+            <form onSubmit={(e) => toast.promise(handleAddCoupon(e), {
+                loading: "Adding coupon...",
+                success: (message) => message || "Coupon added successfully",
+                error: (error) => error.message || "Failed to add coupon",
+            })} className="max-w-sm text-sm">
                 <h2 className="text-2xl">Add <span className="text-slate-800 font-medium">Coupons</span></h2>
                 <div className="flex gap-2 max-sm:flex-col mt-2">
                     <input type="text" placeholder="Coupon Code" className="w-full mt-2 p-2 border border-slate-200 outline-slate-400 rounded-md"
@@ -180,7 +188,11 @@ export default function AdminCoupons() {
                                     <td className="py-3 px-4 text-slate-800">{coupon.forMember ? 'Yes' : 'No'}</td>
                                     <td className="py-3 px-4 text-slate-800">{coupon.isPublic ? 'Yes' : 'No'}</td>
                                     <td className="py-3 px-4 text-slate-800">
-                                        <DeleteIcon onClick={() => toast.promise(deleteCoupon(coupon.code), { loading: "Deleting coupon..." })} className="w-5 h-5 text-red-500 hover:text-red-800 cursor-pointer" />
+                                        <DeleteIcon onClick={() => toast.promise(deleteCoupon(coupon.code), {
+                                            loading: "Deleting coupon...",
+                                            success: (message) => message || "Coupon deleted successfully",
+                                            error: (error) => error.message || "Failed to delete coupon",
+                                        })} className="w-5 h-5 text-red-500 hover:text-red-800 cursor-pointer" />
                                     </td>
                                 </tr>
                             )) : (

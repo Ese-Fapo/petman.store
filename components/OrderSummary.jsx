@@ -21,13 +21,14 @@ const OrderSummary = ({ totalPrice, items }) => {
 
     const handleCouponCode = async (event) => {
         event.preventDefault();
-        
+        throw new Error('Coupon validation is not available yet');
     }
 
     const handlePlaceOrder = async (e) => {
         e.preventDefault();
 
         router.push('/orders')
+        return 'Order placed successfully';
     }
 
     return (
@@ -84,7 +85,11 @@ const OrderSummary = ({ totalPrice, items }) => {
                 </div>
                 {
                     !coupon ? (
-                        <form onSubmit={e => toast.promise(handleCouponCode(e), { loading: 'Checking Coupon...' })} className='flex justify-center gap-3 mt-3'>
+                        <form onSubmit={e => toast.promise(handleCouponCode(e), {
+                            loading: 'Checking Coupon...',
+                            success: (message) => message || 'Coupon applied successfully',
+                            error: (error) => error.message || 'Failed to apply coupon',
+                        })} className='flex justify-center gap-3 mt-3'>
                             <input onChange={(e) => setCouponCodeInput(e.target.value)} value={couponCodeInput} type="text" placeholder='Coupon Code' className='border border-slate-400 p-1.5 rounded w-full outline-none' />
                             <button className='bg-slate-600 text-white px-3 rounded hover:bg-slate-800 active:scale-95 transition-all'>Apply</button>
                         </form>
@@ -101,7 +106,11 @@ const OrderSummary = ({ totalPrice, items }) => {
                 <p>Total:</p>
                 <p className='font-medium text-right'>{currency}{coupon ? (totalPrice - (coupon.discount / 100 * totalPrice)).toFixed(2) : totalPrice.toLocaleString()}</p>
             </div>
-            <button onClick={e => toast.promise(handlePlaceOrder(e), { loading: 'placing Order...' })} className='w-full bg-slate-700 text-white py-2.5 rounded hover:bg-slate-900 active:scale-95 transition-all'>Place Order</button>
+            <button onClick={e => toast.promise(handlePlaceOrder(e), {
+                loading: 'Placing order...',
+                success: (message) => message || 'Order placed successfully',
+                error: (error) => error.message || 'Failed to place order',
+            })} className='w-full bg-slate-700 text-white py-2.5 rounded hover:bg-slate-900 active:scale-95 transition-all'>Place Order</button>
 
             {showAddressModal && <AddressModal setShowAddressModal={setShowAddressModal} />}
 

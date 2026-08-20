@@ -11,14 +11,15 @@ const RatingModal = ({ ratingModal, setRatingModal }) => {
     const [review, setReview] = useState('');
 
     const handleSubmit = async () => {
-        if (rating < 0 || rating > 5) {
-            return toast('Please select a rating');
+        if (rating < 1 || rating > 5) {
+            throw new Error('Please select a rating');
         }
         if (review.length < 5) {
-            return toast('write a short review');
+            throw new Error('Write a short review');
         }
 
         setRatingModal(null);
+        return "Rating submitted successfully";
     }
 
     return (
@@ -44,7 +45,11 @@ const RatingModal = ({ ratingModal, setRatingModal }) => {
                     value={review}
                     onChange={(e) => setReview(e.target.value)}
                 ></textarea>
-                <button onClick={e => toast.promise(handleSubmit(), { loading: 'Submitting...' })} className='w-full bg-green-500 text-white py-2 rounded-md hover:bg-green-600 transition'>
+                <button onClick={e => toast.promise(handleSubmit(), {
+                    loading: 'Submitting...',
+                    success: (message) => message || "Rating submitted successfully",
+                    error: (error) => error.message || "Failed to submit rating",
+                })} className='w-full bg-green-500 text-white py-2 rounded-md hover:bg-green-600 transition'>
                     Submit Rating
                 </button>
             </div>
