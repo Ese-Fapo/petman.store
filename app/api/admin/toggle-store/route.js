@@ -78,7 +78,7 @@ export async function POST(request) {
         });
 
         return json({
-            message: `Store €{store.isActive ? "activated" : "deactivated"} successfully`,
+            message: `Store ${store.isActive ? "activated" : "deactivated"} successfully`,
             store,
         });
     } catch (error) {

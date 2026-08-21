@@ -7,7 +7,7 @@ import toast from "react-hot-toast"
 const ORDER_STATUSES = ["ORDER_PLACED", "PROCESSING", "SHIPPED", "DELIVERED"]
 
 export default function StoreOrders() {
-    const currency = process.env.NEXT_PUBLIC_CURRENCY_SYMBOL || '€'
+    const currency = process.env.NEXT_PUBLIC_CURRENCY_SYMBOL || 'EUR'
 
     const [orders, setOrders] = useState([])
     const [loading, setLoading] = useState(true)
@@ -158,7 +158,7 @@ export default function StoreOrders() {
                             <h3 className="font-semibold mb-2">Products</h3>
                             <div className="space-y-2">
                                 {selectedOrder.orderItems.map((item, i) => (
-                                    <div key={`€ {item.productId}-€{i}`} className="flex items-center gap-4 border border-slate-100 shadow rounded p-2">
+                                    <div key={`${item.productId || item.product?.id || "item"}-${i}`} className="flex items-center gap-4 border border-slate-100 shadow rounded p-2">
                                         {item.product?.images?.[0] && (
                                             <img
                                                 src={item.product.images[0]}

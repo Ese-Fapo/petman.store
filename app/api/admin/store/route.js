@@ -98,7 +98,7 @@ export async function PATCH(request) {
         });
 
         return json({
-            message: `Store €{isActive ? "activated" : "deactivated"} successfully`,
+            message: `Store ${isActive ? "activated" : "deactivated"} successfully`,
             store,
         });
     } catch (error) {

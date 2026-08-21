@@ -38,25 +38,25 @@ const ProductDetails = ({ product }) => {
         : 0;
 
     return (
-        <div className="flex max-lg:flex-col gap-12">
-            <div className="flex max-sm:flex-col-reverse gap-3">
-                <div className="flex sm:flex-col gap-3">
+        <div className="flex flex-col gap-8 lg:flex-row lg:gap-12">
+            <div className="flex min-w-0 flex-col-reverse gap-3 sm:flex-row">
+                <div className="flex gap-3 overflow-x-auto no-scrollbar sm:flex-col sm:overflow-visible">
                     {images.map((image, index) => (
-                        <button key={image} type="button" onClick={() => setMainImage(image)} className="bg-slate-100 flex items-center justify-center size-26 rounded-lg group cursor-pointer">
-                            <Image src={image} className="group-hover:scale-103 group-active:scale-95 transition" alt={`${product.name || "Product"} image ${index + 1}`} width={45} height={45} />
+                        <button key={image} type="button" onClick={() => setMainImage(image)} className="bg-slate-100 flex size-20 shrink-0 items-center justify-center rounded-lg group cursor-pointer sm:size-26">
+                            <Image src={image} className="max-h-14 w-auto object-contain transition group-hover:scale-103 group-active:scale-95 sm:max-h-18" alt={`${product.name || "Product"} image ${index + 1}`} width={70} height={70} />
                         </button>
                     ))}
                 </div>
-                <div className="flex justify-center items-center h-100 sm:size-113 bg-slate-100 rounded-lg">
+                <div className="flex aspect-square w-full max-w-xl items-center justify-center rounded-lg bg-slate-100 sm:size-113">
                     {mainImage ? (
-                        <Image src={mainImage} alt={product.name || "Product image"} width={250} height={250} />
+                        <Image src={mainImage} alt={product.name || "Product image"} width={300} height={300} className="max-h-[75%] w-auto object-contain" />
                     ) : (
                         <div className="text-sm text-slate-400">No image</div>
                     )}
                 </div>
             </div>
-            <div className="flex-1">
-                <h1 className="text-3xl font-semibold text-slate-800">{product.name}</h1>
+            <div className="min-w-0 flex-1">
+                <h1 className="break-words text-2xl font-semibold text-slate-800 sm:text-3xl">{product.name}</h1>
                 <div className='flex items-center mt-2'>
                     {Array(5).fill('').map((_, index) => (
                         <StarIcon key={index} size={14} className='text-transparent mt-0.5' fill={averageRating >= index + 1 ? "#00C950" : "#D1D5DB"} />
@@ -71,14 +71,14 @@ const ProductDetails = ({ product }) => {
                     <TagIcon size={14} />
                     <p>Save {savingPercent}% right now</p>
                 </div>
-                <div className="flex items-end gap-5 mt-10">
+                <div className="mt-10 flex flex-wrap items-end gap-5">
                     {cart[productId] && (
                         <div className="flex flex-col gap-3">
                             <p className="text-lg text-slate-800 font-semibold">Quantity</p>
                             <Counter productId={productId} />
                         </div>
                     )}
-                    <button onClick={() => !cart[productId] ? addToCartHandler() : router.push('/cart')} className="bg-slate-800 text-white px-10 py-3 text-sm font-medium rounded hover:bg-slate-900 active:scale-95 transition">
+                    <button onClick={() => !cart[productId] ? addToCartHandler() : router.push('/cart')} className="rounded bg-slate-800 px-8 py-3 text-sm font-medium text-white transition hover:bg-slate-900 active:scale-95 sm:px-10">
                         {!cart[productId] ? 'Add to Cart' : 'View Cart'}
                     </button>
                 </div>

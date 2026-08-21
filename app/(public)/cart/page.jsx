@@ -10,7 +10,7 @@ import { useDispatch, useSelector } from "react-redux";
 
 export default function Cart() {
 
-    const currency = process.env.NEXT_PUBLIC_CURRENCY_SYMBOL || '€';
+    const currency = process.env.NEXT_PUBLIC_CURRENCY_SYMBOL || 'EUR';
     
     const { cartItems } = useSelector(state => state.cart);
     const products = useSelector(state => state.product.list);
@@ -47,7 +47,7 @@ export default function Cart() {
     }, [cartItems, products]);
 
     return cartArray.length > 0 ? (
-        <div className="min-h-screen mx-6 text-slate-800">
+        <div className="min-h-screen px-4 text-slate-800 sm:px-6">
 
             <div className="max-w-7xl mx-auto ">
                 {/* Title */}
@@ -55,7 +55,8 @@ export default function Cart() {
 
                 <div className="flex items-start justify-between gap-5 max-lg:flex-col">
 
-                    <table className="w-full max-w-4xl text-slate-600 table-auto">
+                    <div className="w-full max-w-4xl overflow-x-auto">
+                    <table className="min-w-[560px] w-full text-slate-600 table-auto">
                         <thead>
                             <tr className="max-sm:text-sm">
                                 <th className="text-left">Product</th>
@@ -92,6 +93,7 @@ export default function Cart() {
                             }
                         </tbody>
                     </table>
+                    </div>
                     <OrderSummary totalPrice={totalPrice} items={cartArray} />
                 </div>
             </div>

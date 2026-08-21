@@ -1,23 +1,24 @@
 import logo from "./logo.png";
+
 import upload_area from "./upload_area.svg";
 import catFood from "./cat-food.webp";
 import catFood2 from "./catfood2.webp";
-import catToy from "./cat-toy.webp";
-import catToy1 from "./cat-toy1.webp";
-import catToy3 from "./cat-toy3.webp";
+import rabbitFood2 from "./rabbitfood2.webp";
+import rabbitFood from "./rabbit-food.webp";
 import dogFood from "./dog-food.webp";
 import dogFood2 from "./dogfood.webp";
 import dogToy from "./dog-toy.webp";
 import dogToy1 from "./dog-toy1.webp";
 import dogToy2 from "./dog-toy2.webp";
+import catToy from "./cat-toy.webp";
+import catToy1 from "./cat-toy1.webp";
+import catToy3 from "./cat-toy3.webp";
 import dogSupplements from "./dogsupplements.webp";
 import foodBowl from "./foodbowl.jpg";
 import hamsterFood from "./hamstarfood.webp";
 import parrotFood from "./parrotfood.webp";
 import petFood from "./pets food.webp";
 import petFood2 from "./petfood2.webp";
-import rabbitFood from "./rabbit-food.webp";
-import rabbitFood2 from "./rabbitfood2.webp";
 import catHero from "./crepessuzette-cat-2170495_1920.jpg";
 import profile_pic3 from "./profile_pic3.jpg";
 import {

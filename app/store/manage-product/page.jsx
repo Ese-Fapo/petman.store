@@ -31,7 +31,7 @@ const emptyEditForm = {
 };
 
 export default function StoreManageProducts() {
-  const currency = process.env.NEXT_PUBLIC_CURRENCY_SYMBOL || "€";
+  const currency = process.env.NEXT_PUBLIC_CURRENCY_SYMBOL || "EUR";
 
   const [loading, setLoading] = useState(true);
   const [products, setProducts] = useState([]);
@@ -163,7 +163,8 @@ export default function StoreManageProducts() {
       <h1 className="text-2xl text-slate-500 mb-5">
         Manage <span className="text-slate-800 font-medium">Products</span>
       </h1>
-      <table className="w-full max-w-4xl text-left  ring ring-slate-200  rounded overflow-hidden text-sm">
+      <div className="max-w-4xl overflow-x-auto rounded ring ring-slate-200">
+      <table className="min-w-[720px] w-full text-left text-sm">
         <thead className="bg-slate-50 text-gray-700 uppercase tracking-wider">
           <tr>
             <th className="px-4 py-3">Name</th>
@@ -247,6 +248,7 @@ export default function StoreManageProducts() {
           )}
         </tbody>
       </table>
+      </div>
 
       {editingProduct && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 px-4 py-6">

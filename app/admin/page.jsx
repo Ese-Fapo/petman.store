@@ -8,7 +8,7 @@ import { useEffect, useState } from "react"
 
 export default function AdminDashboard() {
 
-    const currency = process.env.NEXT_PUBLIC_CURRENCY_SYMBOL || '€'
+    const currency = process.env.NEXT_PUBLIC_CURRENCY_SYMBOL || 'EUR'
 
     const [loading, setLoading] = useState(true)
     const [dashboardData, setDashboardData] = useState({
@@ -74,10 +74,10 @@ export default function AdminDashboard() {
             <h1 className="text-2xl">Admin <span className="text-slate-800 font-medium">Dashboard</span></h1>
 
             {/* Cards */}
-            <div className="flex flex-wrap gap-5 my-10 mt-4">
+            <div className="my-10 mt-4 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
                 {
                     dashboardCardsData.map((card, index) => (
-                        <div key={index} className="flex items-center gap-10 border border-slate-200 p-3 px-6 rounded-lg">
+                        <div key={index} className="flex items-center justify-between gap-5 rounded-lg border border-slate-200 p-4">
                             <div className="flex flex-col gap-3 text-xs">
                                 <p>{card.title}</p>
                                 <b className="text-2xl font-medium text-slate-700">{card.value}</b>

@@ -8,14 +8,14 @@ import { toast } from "react-hot-toast"
 export default function StoreAddProduct() {
 
     const categories = ['Dog Food', 'Cat Food', 'Treats', 'Toys', 'Bird Care', 'Small Pets', 'Bowls', 'Supplements', 'Grooming', 'Beds', 'Others']
-    const currency = process.env.NEXT_PUBLIC_CURRENCY_SYMBOL || '€'
+    const currency = process.env.NEXT_PUBLIC_CURRENCY_SYMBOL || 'EUR'
 
     const [images, setImages] = useState({ 1: null, 2: null, 3: null, 4: null })
     const [productInfo, setProductInfo] = useState({
         name: "",
         description: "",
-        mrp: 0,
-        price: 0,
+        mrp: "",
+        price: "",
         category: "",
     })
     const [loading, setLoading] = useState(false)
@@ -31,7 +31,6 @@ export default function StoreAddProduct() {
         try {
             const selectedImages = Object.values(images).filter(Boolean)
 
-            // Require at least one image before sending the form to the API.
             if (selectedImages.length < 1) {
                 throw new Error("Please upload at least one product image")
             }
@@ -59,8 +58,8 @@ export default function StoreAddProduct() {
             setProductInfo({
                 name: "",
                 description: "",
-                mrp: 0,
-                price: 0,
+                mrp: "",
+                price: "",
                 category: "",
             })
 
@@ -75,37 +74,37 @@ export default function StoreAddProduct() {
             loading: "Adding Product...",
             success: (message) => message || "Product added successfully",
             error: (error) => error.message || "Failed to add product",
-        })} className="text-slate-500 mb-28">
+        })} className="mb-28 max-w-3xl text-slate-500">
             <h1 className="text-2xl">Add New <span className="text-slate-800 font-medium">Products</span></h1>
             <p className="mt-7">Product Images</p>
 
-            <div className="flex gap-3 mt-4">
+            <div className="mt-4 grid grid-cols-2 gap-3 min-[420px]:grid-cols-4 sm:flex">
                 {Object.keys(images).map((key) => (
-                    <label key={key} htmlFor={`images${key}`}>
-                        <Image width={300} height={300} className="h-15 w-auto border border-slate-200 rounded cursor-pointer" src={images[key] ? URL.createObjectURL(images[key]) : assets.upload_area} alt="" />
+                    <label key={key} htmlFor={`images${key}`} className="block">
+                        <Image width={300} height={300} className="h-20 w-full rounded border border-slate-200 object-contain cursor-pointer sm:h-15 sm:w-auto" src={images[key] ? URL.createObjectURL(images[key]) : assets.upload_area} alt="" />
                         <input type="file" accept="image/*" id={`images${key}`} onChange={e => setImages({ ...images, [key]: e.target.files[0] })} hidden />
                     </label>
                 ))}
             </div>
 
-            <label htmlFor="" className="flex flex-col gap-2 my-6 ">
+            <label className="flex flex-col gap-2 my-6">
                 Name
                 <input type="text" name="name" onChange={onChangeHandler} value={productInfo.name} placeholder="Enter product name" className="w-full max-w-sm p-2 px-4 outline-none border border-slate-200 rounded" required />
             </label>
 
-            <label htmlFor="" className="flex flex-col gap-2 my-6 ">
+            <label className="flex flex-col gap-2 my-6">
                 Description
                 <textarea name="description" onChange={onChangeHandler} value={productInfo.description} placeholder="Enter product description" rows={5} className="w-full max-w-sm p-2 px-4 outline-none border border-slate-200 rounded resize-none" required />
             </label>
 
-            <div className="flex gap-5">
-                <label htmlFor="" className="flex flex-col gap-2 ">
+            <div className="grid gap-5 sm:max-w-sm sm:grid-cols-2">
+                <label className="flex flex-col gap-2">
                     Actual Price ({currency})
-                    <input type="number" name="mrp" onChange={onChangeHandler} value={productInfo.mrp} placeholder="0" rows={5} className="w-full max-w-45 p-2 px-4 outline-none border border-slate-200 rounded resize-none" required />
+                    <input type="number" min={1} name="mrp" onChange={onChangeHandler} value={productInfo.mrp} placeholder="0" className="w-full p-2 px-4 outline-none border border-slate-200 rounded" required />
                 </label>
-                <label htmlFor="" className="flex flex-col gap-2 ">
+                <label className="flex flex-col gap-2">
                     Offer Price ({currency})
-                    <input type="number" name="price" onChange={onChangeHandler} value={productInfo.price} placeholder="0" rows={5} className="w-full max-w-45 p-2 px-4 outline-none border border-slate-200 rounded resize-none" required />
+                    <input type="number" min={1} name="price" onChange={onChangeHandler} value={productInfo.price} placeholder="0" className="w-full p-2 px-4 outline-none border border-slate-200 rounded" required />
                 </label>
             </div>
 

@@ -69,7 +69,7 @@ export default function AdminCoupons() {
 
     // Delete a coupon by code and remove it from the local table state.
     const deleteCoupon = async (code) => {
-        const response = await fetch(`/api/coupon?code=€{encodeURIComponent(code)}`, {
+        const response = await fetch(`/api/coupon?code=${encodeURIComponent(code)}`, {
             method: "DELETE",
         })
         const data = await response.json()
