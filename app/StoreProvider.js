@@ -1,5 +1,6 @@
 'use client'
 import CartSync from '@/components/CartSync'
+import ProductSync from '@/components/ProductSync'
 import { useRef } from 'react'
 import { Provider } from 'react-redux'
 import { makeStore } from '../lib/store'
@@ -13,6 +14,7 @@ export default function StoreProvider({ children }) {
 
   return (
     <Provider store={storeRef.current}>
+      <ProductSync />
       <CartSync />
       {children}
     </Provider>

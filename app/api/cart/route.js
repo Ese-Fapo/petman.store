@@ -38,6 +38,15 @@ export async function POST(request) {
     const { cart } = await request.json();
     const normalizedCart = normalizeCart(cart);
 
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { id: true },
+    });
+
+    if (!user) {
+      return json({ error: "User not found" }, 404);
+    }
+
     await prisma.user.update({
       where: { id: userId },
       data: { cart: normalizedCart },
