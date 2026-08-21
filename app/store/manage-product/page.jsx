@@ -6,7 +6,7 @@ import Loading from "@/components/Loading"
 import { assets } from "@/assets/assets"
 import { PencilIcon, XIcon } from "lucide-react"
 
-const categories = ['Dog Food', 'Cat Food', 'Treats', 'Toys', 'Bird Care', 'Small Pets', 'Bowls', 'Supplements', 'Grooming', 'Beds']
+const categories = ['Dog Food', 'Cat Food', 'Treats', 'Toys', 'Bird Care', 'Small Pets', 'Bowls', 'Supplements', 'Grooming', 'Beds', 'Others']
 
 const emptyEditForm = {
     id: "",
@@ -20,7 +20,7 @@ const emptyEditForm = {
 
 export default function StoreManageProducts() {
 
-    const currency = process.env.NEXT_PUBLIC_CURRENCY_SYMBOL || '$'
+    const currency = process.env.NEXT_PUBLIC_CURRENCY_SYMBOL || '€'
 
     const [loading, setLoading] = useState(true)
     const [products, setProducts] = useState([])
@@ -176,7 +176,7 @@ export default function StoreManageProducts() {
                                     <button
                                         type="button"
                                         onClick={() => openEditProduct(product)}
-                                        aria-label={`Edit ${product.name}`}
+                                        aria-label={`Edit €{product.name}`}
                                         className="flex min-h-9 items-center gap-1.5 rounded-md border border-slate-200 px-3 text-slate-600 transition hover:bg-slate-100 hover:text-slate-900"
                                     >
                                         <PencilIcon size={16} />
@@ -227,7 +227,7 @@ export default function StoreManageProducts() {
                         <p className="mt-6">Product Images</p>
                         <div className="mt-3 flex flex-wrap gap-3">
                             {Object.keys(editImages).map((key, index) => (
-                                <label key={key} htmlFor={`edit-image-${key}`} className="cursor-pointer">
+                                <label key={key} htmlFor={`edit-image-€{key}`} className="cursor-pointer">
                                     <Image
                                         width={300}
                                         height={300}
@@ -242,7 +242,7 @@ export default function StoreManageProducts() {
                                     <input
                                         type="file"
                                         accept="image/*"
-                                        id={`edit-image-${key}`}
+                                        id={`edit-image-€{key}`}
                                         onChange={(e) => setEditImages({ ...editImages, [key]: e.target.files[0] })}
                                         hidden
                                     />

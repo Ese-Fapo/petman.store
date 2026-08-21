@@ -1,4 +1,5 @@
 'use client'
+
 import { assets } from "@/assets/assets"
 import Image from "next/image"
 import { useState } from "react"
@@ -6,7 +7,8 @@ import { toast } from "react-hot-toast"
 
 export default function StoreAddProduct() {
 
-    const categories = ['Dog Food', 'Cat Food', 'Treats', 'Toys', 'Bird Care', 'Small Pets', 'Bowls', 'Supplements', 'Grooming', 'Beds']
+    const categories = ['Dog Food', 'Cat Food', 'Treats', 'Toys', 'Bird Care', 'Small Pets', 'Bowls', 'Supplements', 'Grooming', 'Beds', 'Others']
+    const currency = process.env.NEXT_PUBLIC_CURRENCY_SYMBOL || '€'
 
     const [images, setImages] = useState({ 1: null, 2: null, 3: null, 4: null })
     const [productInfo, setProductInfo] = useState({
@@ -17,7 +19,6 @@ export default function StoreAddProduct() {
         category: "",
     })
     const [loading, setLoading] = useState(false)
-
 
     const onChangeHandler = (e) => {
         setProductInfo({ ...productInfo, [e.target.name]: e.target.value })
@@ -30,6 +31,7 @@ export default function StoreAddProduct() {
         try {
             const selectedImages = Object.values(images).filter(Boolean)
 
+            // Require at least one image before sending the form to the API.
             if (selectedImages.length < 1) {
                 throw new Error("Please upload at least one product image")
             }
@@ -40,6 +42,7 @@ export default function StoreAddProduct() {
             formData.append("mrp", productInfo.mrp)
             formData.append("price", productInfo.price)
             formData.append("category", productInfo.category)
+
             selectedImages.forEach((image) => formData.append("images", image))
 
             const response = await fetch("/api/store/product", {
@@ -67,7 +70,6 @@ export default function StoreAddProduct() {
         }
     }
 
-
     return (
         <form onSubmit={e => toast.promise(onSubmitHandler(e), {
             loading: "Adding Product...",
@@ -77,11 +79,11 @@ export default function StoreAddProduct() {
             <h1 className="text-2xl">Add New <span className="text-slate-800 font-medium">Products</span></h1>
             <p className="mt-7">Product Images</p>
 
-            <div htmlFor="" className="flex gap-3 mt-4">
+            <div className="flex gap-3 mt-4">
                 {Object.keys(images).map((key) => (
-                    <label key={key} htmlFor={`images${key}`}>
-                        <Image width={300} height={300} className='h-15 w-auto border border-slate-200 rounded cursor-pointer' src={images[key] ? URL.createObjectURL(images[key]) : assets.upload_area} alt="" />
-                        <input type="file" accept='image/*' id={`images${key}`} onChange={e => setImages({ ...images, [key]: e.target.files[0] })} hidden />
+                    <label key={key} htmlFor={`images€{key}`}>
+                        <Image width={300} height={300} className="h-15 w-auto border border-slate-200 rounded cursor-pointer" src={images[key] ? URL.createObjectURL(images[key]) : assets.upload_area} alt="" />
+                        <input type="file" accept="image/*" id={`images€{key}`} onChange={e => setImages({ ...images, [key]: e.target.files[0] })} hidden />
                     </label>
                 ))}
             </div>
@@ -98,11 +100,11 @@ export default function StoreAddProduct() {
 
             <div className="flex gap-5">
                 <label htmlFor="" className="flex flex-col gap-2 ">
-                    Actual Price (€)
+                    Actual Price ({currency})
                     <input type="number" name="mrp" onChange={onChangeHandler} value={productInfo.mrp} placeholder="0" rows={5} className="w-full max-w-45 p-2 px-4 outline-none border border-slate-200 rounded resize-none" required />
                 </label>
                 <label htmlFor="" className="flex flex-col gap-2 ">
-                    Offer Price (€)
+                    Offer Price ({currency})
                     <input type="number" name="price" onChange={onChangeHandler} value={productInfo.price} placeholder="0" rows={5} className="w-full max-w-45 p-2 px-4 outline-none border border-slate-200 rounded resize-none" required />
                 </label>
             </div>
@@ -116,7 +118,7 @@ export default function StoreAddProduct() {
 
             <br />
 
-            <button disabled={loading} className="bg-slate-800 text-white px-6 mt-7 py-2 hover:bg-slate-900 rounded transition">Add Product</button>
+            <button disabled={loading} className="bg-slate-800 text-white px-6 mt-7 py-2 hover:bg-slate-900 disabled:opacity-60 rounded transition">Add Product</button>
         </form>
     )
 }

@@ -16,7 +16,7 @@ const StoreInfo = ({store}) => {
 
                 {/* Status Badge */}
                 <span
-                    className={`text-xs font-semibold px-4 py-1 rounded-full ${store.status === 'pending'
+                    className={`text-xs font-semibold px-4 py-1 rounded-full €{store.status === 'pending'
                         ? 'bg-yellow-100 text-yellow-800'
                         : store.status === 'rejected'
                         ? 'bg-red-100 text-red-800'

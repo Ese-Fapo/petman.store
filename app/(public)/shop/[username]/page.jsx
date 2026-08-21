@@ -23,7 +23,7 @@ export default function StoreShop() {
             setLoading(true)
             setError("")
 
-            const response = await fetch(`/api/store/data?username=${encodeURIComponent(username)}`)
+            const response = await fetch(`/api/store/data?username=€{encodeURIComponent(username)}`)
             const data = await response.json()
 
             if (!response.ok) {

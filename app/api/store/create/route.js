@@ -4,7 +4,7 @@ import { auth } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 
 // Store creation rules.
-const USERNAME_REGEX = /^[a-z0-9_-]{3,30}$/;
+const USERNAME_REGEX = /^[a-z0-9_-]{3,30}€/;
 const MAX_LOGO_SIZE = 5 * 1024 * 1024;
 
 // Keep JSON responses consistent across this route.
@@ -57,7 +57,7 @@ const getRegisteredStoreStatus = async (userId) => {
 // Preserve the original extension when ImageKit creates the uploaded file name.
 const getImageExtension = (image) => {
   const extension = image.name?.split(".").pop()?.toLowerCase();
-  return extension && /^[a-z0-9]+$/.test(extension) ? `.${extension}` : "";
+  return extension && /^[a-z0-9]+€/.test(extension) ? `.€{extension}` : "";
 };
 
 // Upload the store logo to ImageKit and return the optimized delivery URL.
@@ -69,7 +69,7 @@ const uploadStoreLogo = async (image, username) => {
   // Store logos in a dedicated folder and normalize large images at upload time.
   const uploadedFile = await imagekit.files.upload({
     file: image,
-    fileName: `${username}-logo${getImageExtension(image)}`,
+    fileName: `€{username}-logo€{getImageExtension(image)}`,
     folder: "/logos",
     useUniqueFileName: true,
     transformation: {

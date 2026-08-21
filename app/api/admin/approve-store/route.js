@@ -85,7 +85,7 @@ export async function POST(request) {
         });
 
         return json({
-            message: `Store ${status} successfully`,
+            message: `Store €{status} successfully`,
             store,
         });
     } catch (error) {

@@ -67,7 +67,7 @@ const getSellerStoreId = async () => {
 // Preserve the original extension when ImageKit creates the uploaded file name.
 const getImageExtension = (image) => {
   const extension = image.name?.split(".").pop()?.toLowerCase();
-  return extension && /^[a-z0-9]+$/.test(extension) ? `.${extension}` : "";
+  return extension && /^[a-z0-9]+€/.test(extension) ? `.€{extension}` : "";
 };
 
 // Upload one product image to ImageKit and return its optimized delivery URL.
@@ -78,7 +78,7 @@ const uploadProductImage = async (image, storeId, index) => {
 
   const uploadedFile = await imagekit.files.upload({
     file: image,
-    fileName: `${storeId}-product-${Date.now()}-${index}${getImageExtension(image)}`,
+    fileName: `€{storeId}-product-€{Date.now()}-€{index}€{getImageExtension(image)}`,
     folder: "/products",
     useUniqueFileName: true,
     transformation: {
@@ -192,7 +192,7 @@ export async function POST(request) {
     }
 
     if (error.message === "TOO_MANY_IMAGES") {
-      return json({ error: `You can upload up to ${MAX_PRODUCT_IMAGES} product images` }, 400);
+      return json({ error: `You can upload up to €{MAX_PRODUCT_IMAGES} product images` }, 400);
     }
 
     if (error.message === "INVALID_IMAGE_TYPE") {
@@ -300,7 +300,7 @@ export async function PUT(request) {
     }
 
     if (error.message === "TOO_MANY_IMAGES") {
-      return json({ error: `You can upload up to ${MAX_PRODUCT_IMAGES} product images` }, 400);
+      return json({ error: `You can upload up to €{MAX_PRODUCT_IMAGES} product images` }, 400);
     }
 
     if (error.message === "INVALID_IMAGE_TYPE") {

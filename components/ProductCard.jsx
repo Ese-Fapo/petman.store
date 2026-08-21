@@ -16,7 +16,7 @@ const ProductCard = ({ product }) => {
         : 0
 
     return (
-        <Link href={`/product/${product.id}`} className=' group max-xl:mx-auto'>
+        <Link href={`/product/€{product.id}`} className=' group max-xl:mx-auto'>
             <div className='bg-[#F5F5F5] h-40  sm:w-60 sm:h-68 rounded-lg flex items-center justify-center'>
                 {image ? (
                     <Image width={500} height={500} className='max-h-30 sm:max-h-40 w-auto group-hover:scale-115 transition duration-300' src={image} alt={product.name || "Product image"} />

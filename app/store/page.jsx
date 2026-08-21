@@ -4,11 +4,11 @@ import { CircleDollarSignIcon, ShoppingBasketIcon, StarIcon, TagsIcon } from "lu
 import Image from "next/image"
 import { useRouter } from "next/navigation"
 import { useEffect, useState } from "react"
+import toast from "react-hot-toast"
 
 export default function Dashboard() {
 
-    const currency = process.env.NEXT_PUBLIC_CURRENCY_SYMBOL || '$'
-
+    const currency = process.env.NEXT_PUBLIC_CURRENCY_SYMBOL || '€'
     const router = useRouter()
 
     const [loading, setLoading] = useState(true)
@@ -46,7 +46,9 @@ export default function Dashboard() {
                 ratings: Array.isArray(data.dashboardData?.ratings) ? data.dashboardData.ratings : [],
             })
         } catch (error) {
-            setError(error.message || "Failed to fetch dashboard data")
+            const message = error.message || "Failed to fetch dashboard data"
+            setError(message)
+            toast.error(message)
         } finally {
             setLoading(false)
         }
@@ -71,6 +73,7 @@ export default function Dashboard() {
         <div className=" text-slate-500 mb-28">
             <h1 className="text-2xl">Seller <span className="text-slate-800 font-medium">Dashboard</span></h1>
 
+            {/* Seller dashboard summary metrics. */}
             <div className="flex flex-wrap gap-5 my-10 mt-4">
                 {
                     dashboardCardsData.map((card, index) => (
@@ -116,7 +119,7 @@ export default function Dashboard() {
                                     </div>
                                 </div>
                                 {review.product?.id && (
-                                    <button onClick={() => router.push(`/product/${review.product.id}`)} className="bg-slate-100 px-5 py-2 hover:bg-slate-200 rounded transition-all">View Product</button>
+                                    <button onClick={() => router.push(`/product/€{review.product.id}`)} className="bg-slate-100 px-5 py-2 hover:bg-slate-200 rounded transition-all">View Product</button>
                                 )}
                             </div>
                         </div>

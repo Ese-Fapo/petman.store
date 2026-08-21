@@ -8,6 +8,7 @@ import LatestProducts from "@/components/LatestProducts";
 export default function Home() {
     return (
         <div>
+            {/* Public homepage sections shown in browsing order. */}
             <Hero />
             <LatestProducts />
             <BestSelling />

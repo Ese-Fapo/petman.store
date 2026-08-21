@@ -51,7 +51,7 @@ const Navbar = () => {
 
         if (query) {
             setMobileMenuOpen(false)
-            router.push(`/shop?search=${encodeURIComponent(query)}`)
+            router.push(`/shop?search=€{encodeURIComponent(query)}`)
         }
     }
 
@@ -110,7 +110,7 @@ const Navbar = () => {
                     <Link href="/" className="relative z-20 shrink-0 text-3xl sm:text-4xl font-semibold tracking-normal text-slate-800">
                         JUST<span className="text-green-600">PETS</span><span className="text-green-600 text-5xl leading-0">.</span>
                         <span className="absolute pointer-events-none text-xs font-semibold -top-1 -right-12 px-3 p-0.5 rounded-full flex items-center gap-2 text-white bg-green-600">
-                            c
+                            plus
                         </span>
                     </Link>
 
@@ -120,7 +120,7 @@ const Navbar = () => {
                             <Link
                                 key={link.href}
                                 href={link.href}
-                                className={`flex items-center gap-1.5 whitespace-nowrap hover:text-green-700 transition ${link.highlight ? "text-green-700 font-medium" : ""}`}
+                                className={`flex items-center gap-1.5 whitespace-nowrap hover:text-green-700 transition €{link.highlight ? "text-green-700 font-medium" : ""}`}
                             >
                                 <link.icon size={18} />
                                 {link.label}
@@ -256,7 +256,7 @@ const Navbar = () => {
                                     key={link.href}
                                     href={link.href}
                                     onClick={() => setMobileMenuOpen(false)}
-                                    className={`flex min-h-11 items-center gap-3 rounded-md px-3 transition hover:bg-slate-50 ${link.highlight ? "text-green-700 font-medium" : ""}`}
+                                    className={`flex min-h-11 items-center gap-3 rounded-md px-3 transition hover:bg-slate-50 €{link.highlight ? "text-green-700 font-medium" : ""}`}
                                 >
                                     <link.icon size={19} />
                                     {link.label}
