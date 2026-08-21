@@ -21,7 +21,6 @@ export default function Cart() {
     const [totalPrice, setTotalPrice] = useState(0);
 
     const createCartArray = () => {
-        setTotalPrice(0);
         const cartArray = [];
         for (const [key, value] of Object.entries(cartItems)) {
             const product = products.find(product => product.id === key);
@@ -30,10 +29,11 @@ export default function Cart() {
                     ...product,
                     quantity: value,
                 });
-                setTotalPrice(prev => prev + product.price * value);
             }
         }
+
         setCartArray(cartArray);
+        setTotalPrice(cartArray.reduce((total, item) => total + item.price * item.quantity, 0));
     }
 
     const handleDeleteItemFromCart = (productId) => {

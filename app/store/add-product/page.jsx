@@ -81,9 +81,9 @@ export default function StoreAddProduct() {
 
             <div className="flex gap-3 mt-4">
                 {Object.keys(images).map((key) => (
-                    <label key={key} htmlFor={`images€{key}`}>
+                    <label key={key} htmlFor={`images${key}`}>
                         <Image width={300} height={300} className="h-15 w-auto border border-slate-200 rounded cursor-pointer" src={images[key] ? URL.createObjectURL(images[key]) : assets.upload_area} alt="" />
-                        <input type="file" accept="image/*" id={`images€{key}`} onChange={e => setImages({ ...images, [key]: e.target.files[0] })} hidden />
+                        <input type="file" accept="image/*" id={`images${key}`} onChange={e => setImages({ ...images, [key]: e.target.files[0] })} hidden />
                     </label>
                 ))}
             </div>
