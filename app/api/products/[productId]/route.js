@@ -3,11 +3,18 @@ import { NextResponse } from "next/server";
 
 const json = (body, status = 200) => NextResponse.json(body, { status });
 
-// Get public in-stock products from approved and active stores.
-export async function GET() {
+// Get one public product from an approved and active store.
+export async function GET(_request, { params }) {
   try {
-    const products = await prisma.product.findMany({
+    const { productId } = await params;
+
+    if (!productId || typeof productId !== "string") {
+      return json({ error: "Missing productId" }, 400);
+    }
+
+    const product = await prisma.product.findFirst({
       where: {
+        id: productId,
         inStock: true,
         store: {
           status: "approved",
@@ -27,6 +34,7 @@ export async function GET() {
         createdAt: true,
         updatedAt: true,
         rating: {
+          orderBy: { createdAt: "desc" },
           select: {
             id: true,
             createdAt: true,
@@ -49,12 +57,15 @@ export async function GET() {
           },
         },
       },
-      orderBy: { createdAt: "desc" },
     });
 
-    return json({ products });
+    if (!product) {
+      return json({ error: "Product not found" }, 404);
+    }
+
+    return json({ product });
   } catch (error) {
-    console.error("Failed to fetch products:", error);
-    return json({ error: "Failed to fetch products" }, 500);
+    console.error("Failed to fetch product:", error);
+    return json({ error: "Failed to fetch product" }, 500);
   }
 }

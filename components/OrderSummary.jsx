@@ -1,15 +1,17 @@
 import { PlusIcon, SquarePenIcon, XIcon } from 'lucide-react';
 import React, { useState } from 'react'
 import AddressModal from './AddressModal';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import toast from 'react-hot-toast';
 import { useRouter } from 'next/navigation';
+import { deleteAddress } from '@/lib/features/address/addressSlice';
 
 const OrderSummary = ({ totalPrice, items }) => {
 
     const currency = process.env.NEXT_PUBLIC_CURRENCY_SYMBOL || '€';
 
     const router = useRouter();
+    const dispatch = useDispatch();
 
     const addressList = useSelector(state => state.address.list);
 
@@ -31,6 +33,28 @@ const OrderSummary = ({ totalPrice, items }) => {
         return 'Order placed successfully';
     }
 
+    const handleDeleteAddress = async (addressId) => {
+        const response = await fetch("/api/address", {
+            method: "DELETE",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ addressId }),
+        })
+        const data = await response.json()
+
+        if (!response.ok) {
+            throw new Error(data.error || "Failed to delete address")
+        }
+
+        if (selectedAddress?.id === addressId) {
+            setSelectedAddress(null)
+        }
+
+        dispatch(deleteAddress(addressId))
+        return data.message
+    }
+
     return (
         <div className='w-full max-w-lg lg:max-w-[340px] bg-slate-50/30 border border-slate-200 text-slate-500 text-sm rounded-xl p-7'>
             <h2 className='text-xl font-medium text-slate-600'>Payment Summary</h2>
@@ -50,6 +74,17 @@ const OrderSummary = ({ totalPrice, items }) => {
                         <div className='flex gap-2 items-center'>
                             <p>{selectedAddress.name}, {selectedAddress.city}, {selectedAddress.state}, {selectedAddress.zip}</p>
                             <SquarePenIcon onClick={() => setSelectedAddress(null)} className='cursor-pointer' size={18} />
+                            {selectedAddress.id && (
+                                <XIcon
+                                    size={18}
+                                    onClick={() => toast.promise(handleDeleteAddress(selectedAddress.id), {
+                                        loading: 'Deleting address...',
+                                        success: (message) => message || 'Address deleted successfully',
+                                        error: (error) => error.message || 'Failed to delete address',
+                                    })}
+                                    className='cursor-pointer hover:text-red-700 transition'
+                                />
+                            )}
                         </div>
                     ) : (
                         <div>

@@ -1,4 +1,5 @@
 'use client'
+import AddressSync from '@/components/AddressSync'
 import CartSync from '@/components/CartSync'
 import ProductSync from '@/components/ProductSync'
 import { useRef } from 'react'
@@ -15,6 +16,7 @@ export default function StoreProvider({ children }) {
   return (
     <Provider store={storeRef.current}>
       <ProductSync />
+      <AddressSync />
       <CartSync />
       {children}
     </Provider>
