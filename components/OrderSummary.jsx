@@ -7,7 +7,7 @@ import { useRouter } from 'next/navigation';
 import { deleteAddress } from '@/lib/features/address/addressSlice';
 import { clearCart } from '@/lib/features/cart/cartSlice';
 
-const OrderSummary = ({ totalPrice, items }) => {
+const OrderSummary = ({ totalPrice, items, vendorCount = 0 }) => {
 
     const currency = process.env.NEXT_PUBLIC_CURRENCY_SYMBOL || 'EUR';
 
@@ -152,6 +152,11 @@ const OrderSummary = ({ totalPrice, items }) => {
                 }
             </div>
             <div className='pb-4 border-b border-slate-200'>
+                {vendorCount > 1 && (
+                    <div className='mb-3 rounded border border-green-100 bg-green-50 p-3 text-xs leading-5 text-green-700'>
+                        This cart will create {vendorCount} separate shop orders so each vendor can manage their own fulfillment.
+                    </div>
+                )}
                 <div className='flex justify-between gap-4'>
                     <div className='flex flex-col gap-1 text-slate-400'>
                         <p>Subtotal:</p>
