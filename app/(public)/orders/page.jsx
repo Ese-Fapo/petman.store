@@ -1,18 +1,38 @@
 'use client'
+import Loading from "@/components/Loading";
 import PageTitle from "@/components/PageTitle"
 import { useEffect, useState } from "react";
 import OrderItem from "@/components/OrderItem";
-import { orderDummyData } from "@/assets/assets";
+import toast from "react-hot-toast";
 
 export default function Orders() {
 
     const [orders, setOrders] = useState([]);
+    const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        setOrders(orderDummyData)
+        const fetchOrders = async () => {
+            try {
+                setLoading(true)
+                const response = await fetch("/api/orders")
+                const data = await response.json()
+
+                if (!response.ok) {
+                    throw new Error(data.error || "Failed to fetch orders")
+                }
+
+                setOrders(Array.isArray(data.orders) ? data.orders : [])
+            } catch (error) {
+                toast.error(error.message || "Failed to fetch orders")
+            } finally {
+                setLoading(false)
+            }
+        }
+
+        fetchOrders()
     }, []);
 
-    return (
+    return loading ? <Loading /> : (
         <div className="min-h-[70vh] mx-6">
             {orders.length > 0 ? (
                 (

@@ -110,3 +110,72 @@ export async function PATCH(request) {
         return json({ error: "Failed to update store" }, 500);
     }
 }
+
+// Permanently delete a store and the records that depend on it.
+export async function DELETE(request) {
+    try {
+        const isAdmin = await getAdminAccess();
+
+        if (!isAdmin) {
+            return json({ error: "Not authorized" }, 401);
+        }
+
+        const { storeId, confirmation } = await request.json();
+
+        if (!storeId || typeof storeId !== "string") {
+            return json({ error: "Missing or invalid storeId" }, 400);
+        }
+
+        const store = await prisma.store.findUnique({
+            where: { id: storeId },
+            select: {
+                id: true,
+                name: true,
+                Product: {
+                    select: { id: true },
+                },
+            },
+        });
+
+        if (!store) {
+            return json({ error: "Store not found" }, 404);
+        }
+
+        if (confirmation !== store.name) {
+            return json({ error: "Store name confirmation does not match" }, 400);
+        }
+
+        const productIds = store.Product.map((product) => product.id);
+
+        await prisma.$transaction([
+            prisma.orderItem.deleteMany({
+                where: {
+                    OR: [
+                        { order: { storeId } },
+                        { productId: { in: productIds } },
+                    ],
+                },
+            }),
+            prisma.order.deleteMany({
+                where: { storeId },
+            }),
+            prisma.rating.deleteMany({
+                where: {
+                    productId: { in: productIds },
+                },
+            }),
+            prisma.store.delete({
+                where: { id: storeId },
+            }),
+        ]);
+
+        return json({ message: "Store permanently deleted successfully" });
+    } catch (error) {
+        if (error.code === "P2025") {
+            return json({ error: "Store not found" }, 404);
+        }
+
+        console.error("Failed to permanently delete store:", error);
+        return json({ error: "Failed to permanently delete store" }, 500);
+    }
+}

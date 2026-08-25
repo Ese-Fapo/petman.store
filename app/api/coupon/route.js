@@ -102,8 +102,22 @@ export async function DELETE(request) {
 }
 
 // Get all coupons for admin management.
-export async function GET() {
+export async function GET(request) {
     try {
+        const code = request.nextUrl.searchParams.get("code")?.trim().toUpperCase();
+
+        if (code) {
+            const coupon = await prisma.coupon.findUnique({
+                where: { code },
+            });
+
+            if (!coupon || coupon.expiresAt <= new Date() || (!coupon.isPublic && !coupon.forNewUser)) {
+                return json({ error: "Coupon not found or expired" }, 404);
+            }
+
+            return json({ coupon });
+        }
+
         const isAdmin = await getAdminAccess();
 
         if (!isAdmin) {

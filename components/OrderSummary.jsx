@@ -5,6 +5,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import toast from 'react-hot-toast';
 import { useRouter } from 'next/navigation';
 import { deleteAddress } from '@/lib/features/address/addressSlice';
+import { clearCart } from '@/lib/features/cart/cartSlice';
 
 const OrderSummary = ({ totalPrice, items }) => {
 
@@ -23,14 +24,59 @@ const OrderSummary = ({ totalPrice, items }) => {
 
     const handleCouponCode = async (event) => {
         event.preventDefault();
-        throw new Error('Coupon validation is not available yet');
+
+        const code = couponCodeInput.trim()
+
+        if (!code) {
+            throw new Error('Enter a coupon code')
+        }
+
+        const response = await fetch(`/api/coupon?code=${encodeURIComponent(code)}`)
+        const data = await response.json()
+
+        if (!response.ok) {
+            throw new Error(data.error || 'Failed to apply coupon')
+        }
+
+        setCoupon(data.coupon)
+        return 'Coupon applied successfully'
     }
 
     const handlePlaceOrder = async (e) => {
         e.preventDefault();
 
+        if (!selectedAddress?.id) {
+            throw new Error('Select a delivery address')
+        }
+
+        if (!items.length) {
+            throw new Error('Your cart is empty')
+        }
+
+        const response = await fetch("/api/orders", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+                addressId: selectedAddress.id,
+                paymentMethod,
+                couponCode: coupon?.code || "",
+                items: items.map((item) => ({
+                    productId: item.id,
+                    quantity: item.quantity,
+                })),
+            }),
+        })
+        const data = await response.json()
+
+        if (!response.ok) {
+            throw new Error(data.error || 'Failed to place order')
+        }
+
+        dispatch(clearCart())
         router.push('/orders')
-        return 'Order placed successfully';
+        return data.message || 'Order placed successfully';
     }
 
     const handleDeleteAddress = async (addressId) => {
@@ -64,8 +110,8 @@ const OrderSummary = ({ totalPrice, items }) => {
                 <label htmlFor="COD" className='cursor-pointer'>COD</label>
             </div>
             <div className='flex gap-2 items-center mt-1'>
-                <input type="radio" id="STRIPE" name='payment' onChange={() => setPaymentMethod('STRIPE')} checked={paymentMethod === 'STRIPE'} className='accent-gray-500' />
-                <label htmlFor="STRIPE" className='cursor-pointer'>Stripe Payment</label>
+                <input type="radio" id="STRIPE" name='payment' disabled className='accent-gray-500' />
+                <label htmlFor="STRIPE" className='cursor-not-allowed text-slate-300'>Stripe Payment</label>
             </div>
             <div className='my-4 py-4 border-y border-slate-200 text-slate-400'>
                 <p>Address</p>

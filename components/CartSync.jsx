@@ -5,6 +5,16 @@ import { useUser } from "@clerk/nextjs"
 import { useEffect, useRef } from "react"
 import { useDispatch, useSelector } from "react-redux"
 
+const mergeCarts = (savedCart, localCart) => {
+    const mergedCart = { ...(savedCart || {}) }
+
+    for (const [productId, quantity] of Object.entries(localCart || {})) {
+        mergedCart[productId] = (Number(mergedCart[productId]) || 0) + (Number(quantity) || 0)
+    }
+
+    return mergedCart
+}
+
 const CartSync = () => {
     const { isLoaded, isSignedIn } = useUser()
     const cartItems = useSelector((state) => state.cart.cartItems)
@@ -22,7 +32,7 @@ const CartSync = () => {
                 const data = await response.json()
 
                 if (response.ok) {
-                    dispatch(setCart({ ...(data.cart || {}), ...cartItems }))
+                    dispatch(setCart(mergeCarts(data.cart, cartItems)))
                 }
             } catch {
                 // Keep the local cart usable if the saved cart cannot be loaded.

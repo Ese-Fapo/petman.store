@@ -1,50 +1,67 @@
 'use client'
 import Counter from "@/components/Counter";
+import Loading from "@/components/Loading";
 import OrderSummary from "@/components/OrderSummary";
 import PageTitle from "@/components/PageTitle";
-import { deleteItemFromCart } from "@/lib/features/cart/cartSlice";
+import { deleteItemFromCart, setCart } from "@/lib/features/cart/cartSlice";
 import { Trash2Icon } from "lucide-react";
 import Image from "next/image";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo } from "react";
 import { useDispatch, useSelector } from "react-redux";
 
 export default function Cart() {
 
     const currency = process.env.NEXT_PUBLIC_CURRENCY_SYMBOL || 'EUR';
     
-    const { cartItems } = useSelector(state => state.cart);
-    const products = useSelector(state => state.product.list);
+    const { cartItems, total } = useSelector(state => state.cart);
+    const { list: products, loading: productsLoading, error: productsError } = useSelector(state => state.product);
 
     const dispatch = useDispatch();
 
-    const [cartArray, setCartArray] = useState([]);
-    const [totalPrice, setTotalPrice] = useState(0);
+    const cartArray = useMemo(() => {
+        const productById = new Map(products.map((product) => [product.id, product]));
+        const nextCartArray = [];
 
-    const createCartArray = () => {
-        const cartArray = [];
         for (const [key, value] of Object.entries(cartItems)) {
-            const product = products.find(product => product.id === key);
+            const product = productById.get(key);
             if (product) {
-                cartArray.push({
+                nextCartArray.push({
                     ...product,
                     quantity: value,
                 });
             }
         }
 
-        setCartArray(cartArray);
-        setTotalPrice(cartArray.reduce((total, item) => total + item.price * item.quantity, 0));
-    }
+        return nextCartArray;
+    }, [cartItems, products]);
+
+    const totalPrice = useMemo(
+        () => cartArray.reduce((total, item) => total + item.price * item.quantity, 0),
+        [cartArray]
+    );
 
     const handleDeleteItemFromCart = (productId) => {
         dispatch(deleteItemFromCart({ productId }))
     }
 
     useEffect(() => {
-        if (products.length > 0) {
-            createCartArray();
+        if (productsLoading || productsError || total === 0) {
+            return;
         }
-    }, [cartItems, products]);
+
+        const availableProductIds = new Set(products.map((product) => product.id));
+        const availableCartItems = Object.fromEntries(
+            Object.entries(cartItems).filter(([productId]) => availableProductIds.has(productId))
+        );
+
+        if (Object.keys(availableCartItems).length !== Object.keys(cartItems).length) {
+            dispatch(setCart(availableCartItems));
+        }
+    }, [cartItems, dispatch, products, productsError, productsLoading, total]);
+
+    if (productsLoading && total > 0) {
+        return <Loading />
+    }
 
     return cartArray.length > 0 ? (
         <div className="min-h-screen px-4 text-slate-800 sm:px-6">
@@ -67,11 +84,13 @@ export default function Cart() {
                         </thead>
                         <tbody>
                             {
-                                cartArray.map((item, index) => (
-                                    <tr key={index} className="space-x-2">
+                                cartArray.map((item) => (
+                                    <tr key={item.id} className="space-x-2">
                                         <td className="flex gap-3 my-4">
                                             <div className="flex gap-3 items-center justify-center bg-slate-100 size-18 rounded-md">
-                                                <Image src={item.images[0]} className="h-14 w-auto" alt="" width={45} height={45} />
+                                                {item.images?.[0] && (
+                                                    <Image src={item.images[0]} className="h-14 w-auto object-contain" alt={item.name || "Product image"} width={45} height={45} />
+                                                )}
                                             </div>
                                             <div>
                                                 <p className="max-sm:text-sm">{item.name}</p>
