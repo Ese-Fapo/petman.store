@@ -6,14 +6,35 @@ import { NextResponse } from "next/server";
 
 const json = (body, status = 200) => NextResponse.json(body, { status });
 
+const getSubscriptionAccess = async () => {
+    const { userId, has } = await auth();
+
+    return {
+        userId: userId || null,
+        isPlusSubscriber: Boolean(userId && has({ plan: "plus" })),
+    };
+};
+
 const getAdminAccess = async () => {
     const { userId } = await auth();
 
-    if (!userId) {
-        return false;
+    return userId ? authAdmin(userId) : false;
+};
+
+const validateCouponAccess = (coupon, isPlusSubscriber) => {
+    if (!coupon || coupon.expiresAt <= new Date()) {
+        return { error: "Coupon not found or expired", status: 404 };
     }
 
-    return authAdmin(userId);
+    if (coupon.forMember && !isPlusSubscriber) {
+        return { error: "This coupon is only available for Plus subscribers", status: 403 };
+    }
+
+    if (!coupon.isPublic && !coupon.forNewUser && !coupon.forMember) {
+        return { error: "Coupon not found or expired", status: 404 };
+    }
+
+    return null;
 };
 
 const normalizeCoupon = (coupon) => {
@@ -107,15 +128,18 @@ export async function GET(request) {
         const code = request.nextUrl.searchParams.get("code")?.trim().toUpperCase();
 
         if (code) {
+            const { isPlusSubscriber } = await getSubscriptionAccess();
             const coupon = await prisma.coupon.findUnique({
                 where: { code },
             });
 
-            if (!coupon || coupon.expiresAt <= new Date() || (!coupon.isPublic && !coupon.forNewUser)) {
-                return json({ error: "Coupon not found or expired" }, 404);
+            const couponAccessError = validateCouponAccess(coupon, isPlusSubscriber);
+
+            if (couponAccessError) {
+                return json({ error: couponAccessError.error }, couponAccessError.status);
             }
 
-            return json({ coupon });
+            return json({ message: "Coupon applied successfully", coupon });
         }
 
         const isAdmin = await getAdminAccess();

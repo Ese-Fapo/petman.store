@@ -14,7 +14,7 @@ import {
     StoreIcon,
     XIcon,
 } from "lucide-react"
-import { SignInButton, useClerk, useUser, UserButton } from "@clerk/nextjs"
+import { Show, SignInButton, useClerk, useUser, UserButton } from "@clerk/nextjs"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { useEffect, useMemo, useState } from "react"
@@ -45,10 +45,10 @@ const Navbar = () => {
 
         return [
             ...(isAdmin ? [{ label: "Admin Dashboard", href: "/admin", icon: LayoutDashboardIcon, highlight: true }] : []),
-            ...(isAdmin ? [{ label: "Shops", href: "/admin/stores", icon: StoreIcon }] : []),
+            ...(isAdmin ? [{ label: "Partners", href: "/admin/stores", icon: StoreIcon }] : []),
             ...(isSeller ? [{ label: sellerStore?.name || "Store Dashboard", href: "/store", icon: StoreIcon, highlight: !isAdmin }] : []),
             ...(isSeller ? [{ label: "Add Product", href: "/store/add-product", icon: PlusCircleIcon }] : []),
-            ...(isSeller ? [{ label: "Store Orders", href: "/store/orders", icon: ShoppingBagIcon }] : []),
+            ...(isSeller ? [{ label: "Orders From my Store", href: "/store/orders", icon: ShoppingBagIcon }] : []),
             ...(!isAdmin && !isSeller ? [{ label: "Become a Seller", href: "/create-store", icon: StoreIcon }] : []),
         ]
     }, [isAdmin, isSeller, sellerStore?.name, user])
@@ -132,9 +132,11 @@ const Navbar = () => {
                 <div className="flex min-h-16 items-center justify-between gap-3 lg:min-h-20">
                     <Link href="/" className="relative shrink-0 text-2xl font-semibold tracking-normal text-slate-800 sm:text-3xl">
                         JUST<span className="text-green-600">PETS</span><span className="text-green-600">.</span>
-                        <span className="absolute -right-10 -top-1 rounded-full bg-green-600 px-2 py-0.5 text-[10px] font-semibold text-white">
-                            plus
-                        </span>
+                        <Show when={{ plan: "plus" }}>
+                            <span className="absolute -right-10 -top-1 rounded-full bg-green-600 px-2 py-0.5 text-[10px] font-semibold text-white">
+                                plus
+                            </span>
+                        </Show>
                     </Link>
 
                     <div className="hidden min-w-0 flex-1 items-center justify-center gap-1 lg:flex">

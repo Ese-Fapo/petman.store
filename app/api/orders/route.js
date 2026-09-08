@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma";
+import { calculateDeliveryFee } from "@/lib/deliveryFee";
 import { auth } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 
@@ -26,6 +27,31 @@ const orderSelect = {
 const getCurrentUserId = async () => {
     const { userId } = await auth();
     return userId || null;
+};
+
+const getCurrentAccess = async () => {
+    const { userId, has } = await auth();
+
+    return {
+        userId: userId || null,
+        isPlusSubscriber: Boolean(userId && has({ plan: "plus" })),
+    };
+};
+
+const getCouponAccessError = (coupon, isPlusSubscriber) => {
+    if (!coupon || coupon.expiresAt <= new Date()) {
+        return "Coupon not found or expired";
+    }
+
+    if (coupon.forMember && !isPlusSubscriber) {
+        return "This coupon is only available for Plus subscribers";
+    }
+
+    if (!coupon.isPublic && !coupon.forNewUser && !coupon.forMember) {
+        return "Coupon not found or expired";
+    }
+
+    return null;
 };
 
 const normalizeOrderItems = (items) => {
@@ -74,7 +100,7 @@ export async function GET() {
 // Create one order per store represented in the cart.
 export async function POST(request) {
     try {
-        const userId = await getCurrentUserId();
+        const { userId, isPlusSubscriber } = await getCurrentAccess();
 
         if (!userId) {
             return json({ error: "Unauthorized" }, 401);
@@ -101,7 +127,14 @@ export async function POST(request) {
                 id: addressId,
                 userId,
             },
-            select: { id: true },
+            select: {
+                id: true,
+                street: true,
+                city: true,
+                state: true,
+                zip: true,
+                country: true,
+            },
         });
 
         if (!address) {
@@ -116,8 +149,10 @@ export async function POST(request) {
                 where: { code: normalizedCouponCode },
             });
 
-            if (!coupon || coupon.expiresAt <= new Date() || (!coupon.isPublic && !coupon.forNewUser)) {
-                return json({ error: "Coupon not found or expired" }, 400);
+            const couponAccessError = getCouponAccessError(coupon, isPlusSubscriber);
+
+            if (couponAccessError) {
+                return json({ error: couponAccessError }, 400);
             }
 
             if (coupon.forNewUser) {
@@ -145,6 +180,12 @@ export async function POST(request) {
                 id: true,
                 price: true,
                 storeId: true,
+                store: {
+                    select: {
+                        address: true,
+                        name: true,
+                    },
+                },
             },
         });
         const productById = new Map(products.map((product) => [product.id, product]));
@@ -158,9 +199,13 @@ export async function POST(request) {
 
         for (const item of normalizedItems) {
             const product = productById.get(item.productId);
-            const storeItems = itemsByStore.get(product.storeId) || [];
+            const storeItems = itemsByStore.get(product.storeId) || {
+                storeAddress: product.store?.address || "",
+                storeName: product.store?.name || "Shop",
+                items: [],
+            };
 
-            storeItems.push({
+            storeItems.items.push({
                 productId: item.productId,
                 quantity: item.quantity,
                 price: product.price,
@@ -171,16 +216,23 @@ export async function POST(request) {
         const orders = await prisma.$transaction(async (tx) => {
             const createdOrders = [];
 
-            for (const [storeId, orderItems] of itemsByStore.entries()) {
-                const total = orderItems.reduce(
+            for (const [storeId, storeOrder] of itemsByStore.entries()) {
+                const subtotal = storeOrder.items.reduce(
                     (sum, item) => sum + item.price * item.quantity,
                     0
                 );
-                const discount = coupon ? coupon.discount / 100 * total : 0;
+                const discount = coupon ? coupon.discount / 100 * subtotal : 0;
+                const delivery = calculateDeliveryFee({
+                    storeAddress: storeOrder.storeAddress,
+                    customerAddress: address,
+                    subtotal,
+                });
+                const orderShippingFee = isPlusSubscriber ? 0 : delivery.fee;
+                const total = Math.max(subtotal - discount, 0) + orderShippingFee;
 
                 const order = await tx.order.create({
                     data: {
-                        total: Math.max(total - discount, 0),
+                        total,
                         userId,
                         storeId,
                         addressId,
@@ -192,10 +244,15 @@ export async function POST(request) {
                                 code: coupon.code,
                                 description: coupon.description,
                                 discount: coupon.discount,
+                                forMember: coupon.forMember,
+                                forNewUser: coupon.forNewUser,
+                                shippingFee: orderShippingFee,
+                                subtotal,
+                                delivery,
                             }
-                            : {},
+                            : { shippingFee: orderShippingFee, subtotal, delivery },
                         orderItems: {
-                            create: orderItems,
+                            create: storeOrder.items,
                         },
                     },
                     select: orderSelect,

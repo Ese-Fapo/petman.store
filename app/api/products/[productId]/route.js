@@ -54,6 +54,7 @@ export async function GET(_request, { params }) {
             name: true,
             username: true,
             logo: true,
+            address: true,
           },
         },
       },
