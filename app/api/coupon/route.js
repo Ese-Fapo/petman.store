@@ -15,13 +15,27 @@ const getSubscriptionAccess = async () => {
     };
 };
 
+const hasExistingOrders = async (userId) => {
+    if (!userId) {
+        return false;
+    }
+
+    const orderCount = await prisma.order.count({
+        where: { userId },
+    });
+
+    return orderCount > 0;
+};
+
 const getAdminAccess = async () => {
     const { userId } = await auth();
 
     return userId ? authAdmin(userId) : false;
 };
 
-const validateCouponAccess = (coupon, isPlusSubscriber) => {
+const isPublicCoupon = (coupon) => coupon.isPublic || (!coupon.forNewUser && !coupon.forMember);
+
+const validateCouponAccess = async (coupon, { userId, isPlusSubscriber }) => {
     if (!coupon || coupon.expiresAt <= new Date()) {
         return { error: "Coupon not found or expired", status: 404 };
     }
@@ -30,18 +44,35 @@ const validateCouponAccess = (coupon, isPlusSubscriber) => {
         return { error: "This coupon is only available for Plus subscribers", status: 403 };
     }
 
-    if (!coupon.isPublic && !coupon.forNewUser && !coupon.forMember) {
-        return { error: "Coupon not found or expired", status: 404 };
+    if (coupon.forNewUser) {
+        if (!userId) {
+            return { error: "Sign in to use this new customer coupon", status: 401 };
+        }
+
+        if (await hasExistingOrders(userId)) {
+            return { error: "Coupon is only available for new customers", status: 403 };
+        }
     }
 
     return null;
+};
+
+const parseCouponExpiry = (expiresAt) => {
+    if (typeof expiresAt === "string" && /^\d{4}-\d{2}-\d{2}$/.test(expiresAt)) {
+        return new Date(`${expiresAt}T23:59:59.999Z`);
+    }
+
+    return new Date(expiresAt);
 };
 
 const normalizeCoupon = (coupon) => {
     const code = typeof coupon?.code === "string" ? coupon.code.trim().toUpperCase() : "";
     const description = typeof coupon?.description === "string" ? coupon.description.trim() : "";
     const discount = Number(coupon?.discount);
-    const expiresAt = new Date(coupon?.expiresAt);
+    const expiresAt = parseCouponExpiry(coupon?.expiresAt);
+    const forNewUser = Boolean(coupon?.forNewUser);
+    const forMember = Boolean(coupon?.forMember);
+    const isPublic = Boolean(coupon?.isPublic) || (!forNewUser && !forMember);
 
     if (!code || !description || !Number.isFinite(discount) || discount < 1 || discount > 100 || Number.isNaN(expiresAt.getTime())) {
         return null;
@@ -51,9 +82,9 @@ const normalizeCoupon = (coupon) => {
         code,
         description,
         discount,
-        forNewUser: Boolean(coupon?.forNewUser),
-        forMember: Boolean(coupon?.forMember),
-        isPublic: Boolean(coupon?.isPublic),
+        forNewUser,
+        forMember,
+        isPublic,
         expiresAt,
     };
 };
@@ -128,18 +159,24 @@ export async function GET(request) {
         const code = request.nextUrl.searchParams.get("code")?.trim().toUpperCase();
 
         if (code) {
-            const { isPlusSubscriber } = await getSubscriptionAccess();
+            const access = await getSubscriptionAccess();
             const coupon = await prisma.coupon.findUnique({
                 where: { code },
             });
 
-            const couponAccessError = validateCouponAccess(coupon, isPlusSubscriber);
+            const couponAccessError = await validateCouponAccess(coupon, access);
 
             if (couponAccessError) {
                 return json({ error: couponAccessError.error }, couponAccessError.status);
             }
 
-            return json({ message: "Coupon applied successfully", coupon });
+            return json({
+                message: "Coupon applied successfully",
+                coupon: {
+                    ...coupon,
+                    isPublic: isPublicCoupon(coupon),
+                },
+            });
         }
 
         const isAdmin = await getAdminAccess();

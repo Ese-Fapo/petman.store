@@ -47,10 +47,6 @@ const getCouponAccessError = (coupon, isPlusSubscriber) => {
         return "This coupon is only available for Plus subscribers";
     }
 
-    if (!coupon.isPublic && !coupon.forNewUser && !coupon.forMember) {
-        return "Coupon not found or expired";
-    }
-
     return null;
 };
 
@@ -246,6 +242,7 @@ export async function POST(request) {
                                 discount: coupon.discount,
                                 forMember: coupon.forMember,
                                 forNewUser: coupon.forNewUser,
+                                isPublic: coupon.isPublic || (!coupon.forNewUser && !coupon.forMember),
                                 shippingFee: orderShippingFee,
                                 subtotal,
                                 delivery,

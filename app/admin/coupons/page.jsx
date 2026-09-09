@@ -10,7 +10,7 @@ const defaultCoupon = {
     discount: '',
     forNewUser: false,
     forMember: false,
-    isPublic: false,
+    isPublic: true,
     expiresAt: format(new Date(), 'yyyy-MM-dd')
 }
 
