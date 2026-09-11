@@ -3,6 +3,7 @@ import authSeller from "@/middlewares/authSeller";
 import { auth } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 
+// API for sellers to view and update orders belonging to their own store.
 const VALID_ORDER_STATUSES = ["ORDER_PLACED", "PROCESSING", "SHIPPED", "DELIVERED"];
 
 const json = (body, status = 200) => NextResponse.json(body, { status });
@@ -38,6 +39,7 @@ const getSellerStoreId = async () => {
         return null;
     }
 
+    // authSeller confirms the user owns an approved, active store.
     return authSeller(userId);
 };
 
@@ -92,6 +94,7 @@ export async function PATCH(request) {
             },
         });
 
+        // Store ownership is checked before the status update to prevent cross-store edits.
         if (!existingOrder) {
             return json({ error: "Order not found" }, 404);
         }

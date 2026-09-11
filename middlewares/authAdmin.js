@@ -18,6 +18,7 @@ const authAdmin = async (userId) => {
 
         const client = await clerkClient()
         const user = await client.users.getUser(userId)
+        // Compare against Clerk's verified account email instead of trusting client-supplied data.
         const userEmail = user.emailAddresses
             ?.find((email) => email.id === user.primaryEmailAddressId)
             ?.emailAddress

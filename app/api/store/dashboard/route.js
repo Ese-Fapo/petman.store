@@ -3,6 +3,7 @@ import { auth } from "@clerk/nextjs/server";
 import { prisma } from "@/lib/prisma";
 import authSeller from "@/middlewares/authSeller";
 
+// API for seller dashboard metrics and recent product reviews.
 const json = (body, status = 200) => NextResponse.json(body, { status });
 
 // Get dashboard data for the current seller.
@@ -32,6 +33,7 @@ export async function GET() {
         ]);
 
         const productIds = products.map((product) => product.id);
+        // Ratings are fetched for the seller's products only, keeping private marketplace data scoped.
         const ratings = productIds.length
             ? await prisma.rating.findMany({
                 where: { productId: { in: productIds } },

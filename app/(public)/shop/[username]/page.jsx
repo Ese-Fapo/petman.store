@@ -2,6 +2,7 @@
 
 import Loading from "@/components/Loading"
 import ProductCard from "@/components/ProductCard"
+import StoreCoupons from "@/components/StoreCoupons"
 import { MailIcon, MapPinIcon } from "lucide-react"
 import Image from "next/image"
 import { useParams } from "next/navigation"
@@ -12,6 +13,7 @@ export default function StoreShop() {
     const { username } = useParams()
     const [products, setProducts] = useState([])
     const [storeInfo, setStoreInfo] = useState(null)
+    const [coupons, setCoupons] = useState([])
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState("")
 
@@ -34,9 +36,11 @@ export default function StoreShop() {
 
                 setStoreInfo(data.store)
                 setProducts(Array.isArray(data.products) ? data.products : [])
+                setCoupons(Array.isArray(data.coupons) ? data.coupons : [])
             } catch (error) {
                 setStoreInfo(null)
                 setProducts([])
+                setCoupons([])
                 setError(error.message || "Failed to fetch store")
             } finally {
                 setLoading(false)
@@ -90,6 +94,16 @@ export default function StoreShop() {
                             </div>
                         </div>
                     </div>
+                </div>
+            )}
+
+            {coupons.length > 0 && (
+                <div className="mx-auto mt-6 max-w-7xl">
+                    <div className="mb-3 flex items-center justify-between gap-3">
+                        <h2 className="text-xl font-semibold text-slate-800">Available Coupons</h2>
+                        <p className="text-xs text-slate-500">Copy a code and use it at checkout</p>
+                    </div>
+                    <StoreCoupons coupons={coupons} />
                 </div>
             )}
 

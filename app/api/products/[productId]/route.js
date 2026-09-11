@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
 
+// Public product detail API for one purchasable product.
 const json = (body, status = 200) => NextResponse.json(body, { status });
 
 // Get one public product from an approved and active store.
@@ -40,6 +41,7 @@ export async function GET(_request, { params }) {
             createdAt: true,
             rating: true,
             review: true,
+            orderId: true,
             user: {
               select: {
                 name: true,
@@ -55,6 +57,20 @@ export async function GET(_request, { params }) {
             username: true,
             logo: true,
             address: true,
+            Coupon: {
+              where: {
+                isPublic: true,
+                expiresAt: { gt: new Date() },
+              },
+              orderBy: { createdAt: "desc" },
+              select: {
+                code: true,
+                description: true,
+                discount: true,
+                expiresAt: true,
+                storeId: true,
+              },
+            },
           },
         },
       },
@@ -64,7 +80,26 @@ export async function GET(_request, { params }) {
       return json({ error: "Product not found" }, 404);
     }
 
-    return json({ product });
+    // Return summary fields alongside raw reviews for product detail and review tabs.
+    const ratings = Array.isArray(product.rating) ? product.rating : [];
+    const averageRating = ratings.length
+      ? ratings.reduce((sum, item) => sum + Number(item.rating || 0), 0) / ratings.length
+      : 0;
+
+    return json({
+      product: {
+        ...product,
+        store: product.store
+          ? {
+            ...product.store,
+            coupons: product.store.Coupon || [],
+            Coupon: undefined,
+          }
+          : product.store,
+        averageRating: Number(averageRating.toFixed(1)),
+        reviewCount: ratings.length,
+      },
+    });
   } catch (error) {
     console.error("Failed to fetch product:", error);
     return json({ error: "Failed to fetch product" }, 500);

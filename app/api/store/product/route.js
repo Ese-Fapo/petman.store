@@ -4,6 +4,7 @@ import authSeller from "@/middlewares/authSeller";
 import { auth } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 
+// API for sellers to create, edit, and list their own products.
 const MAX_IMAGE_SIZE = 5 * 1024 * 1024;
 const MAX_PRODUCT_IMAGES = 4;
 
@@ -259,6 +260,7 @@ export async function PUT(request) {
       return json({ error: "Product not found" }, 404);
     }
 
+    // If new images are provided, they replace the old image set; otherwise current images stay.
     for (const [index, image] of images.entries()) {
       const uploadedImage = await uploadProductImage(image, storeId, index + 1);
       uploadedImages.push(uploadedImage);

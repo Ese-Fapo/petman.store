@@ -2,6 +2,7 @@ import { prisma } from "@/lib/prisma";
 import { auth } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 
+// API for the signed-in buyer's saved delivery addresses.
 const ADDRESS_FIELDS = ["name", "email", "street", "city", "state", "zip", "country", "phone"];
 
 const json = (body, status = 200) => NextResponse.json(body, { status });
@@ -30,6 +31,7 @@ const validateAddress = (address) => {
   const normalizedAddress = normalizeAddress(address);
   const missingField = ADDRESS_FIELDS.find((field) => !normalizedAddress[field]);
 
+  // Every address field is required because checkout uses the full address for delivery calculation.
   if (missingField) {
     return {
       error: `${missingField} is required`,
@@ -51,6 +53,7 @@ const validateAddress = (address) => {
 };
 
 const ensureUserExists = async (userId) => {
+  // Clerk can be ready before the user webhook has created the local row, so check before writes.
   const user = await prisma.user.findUnique({
     where: { id: userId },
     select: { id: true },
@@ -146,6 +149,7 @@ export async function PUT(request) {
       select: { id: true },
     });
 
+    // Ownership is checked with userId so one user cannot edit another user's address.
     if (!existingAddress) {
       return json({ error: "Address not found" }, 404);
     }
@@ -188,6 +192,7 @@ export async function DELETE(request) {
       select: { id: true },
     });
 
+    // Ownership is checked with userId so one user cannot delete another user's address.
     if (!existingAddress) {
       return json({ error: "Address not found" }, 404);
     }

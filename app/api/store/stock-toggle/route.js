@@ -3,6 +3,7 @@ import authSeller from "@/middlewares/authSeller";
 import { auth } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 
+// API for sellers to quickly publish or hide one of their products from shoppers.
 // Keep JSON responses consistent across this route.
 const json = (body, status = 200) => NextResponse.json(body, { status });
 

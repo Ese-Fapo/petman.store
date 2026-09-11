@@ -43,9 +43,9 @@ const Hero = () => {
                         </div>
                     </div>
                     <div className='hidden xl:block absolute inset-y-8 right-8 w-[44%] overflow-hidden rounded-[1.5rem] bg-slate-950 shadow-2xl'>
-                        <Image className='h-full w-full object-cover object-center opacity-95 transition duration-500 group-hover:scale-105' src={assets.hero_model_img} alt="Cat resting beside pet shop supplies" />
+                        <Image className='h-full w-full object-cover object-center opacity-95 transition duration-500 group-hover:scale-105' src={assets.hero_model_img} alt="Cat resting beside pet shop supplies" loading="eager" fetchPriority="high" />
                     </div>
-                    <Image className='sm:absolute bottom-0 right-0 md:right-6 w-full sm:max-w-md h-72 sm:h-full object-cover object-center xl:hidden' src={assets.hero_model_img} alt="Cat resting beside pet shop supplies" />
+                    <Image className='sm:absolute bottom-0 right-0 md:right-6 w-full sm:max-w-md h-72 sm:h-full object-cover object-center xl:hidden' src={assets.hero_model_img} alt="Cat resting beside pet shop supplies" loading="eager" fetchPriority="high" />
                 </div>
                 <div className='flex flex-col md:flex-row xl:flex-col gap-5 w-full xl:max-w-none xl:gap-6 text-sm text-slate-600'>
                     <div className='flex-1 flex items-center justify-between w-full bg-orange-200 rounded-3xl p-6 px-8 xl:relative xl:min-h-[257px] xl:overflow-hidden xl:bg-slate-950 xl:text-slate-300 xl:p-8 xl:rounded-[1.75rem] group'>

@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma"
 import { NextResponse } from "next/server";
 
+// Public store profile API used by /shop/[username].
 
 const json = (body, status = 200) => NextResponse.json(body, { status });
 
@@ -17,6 +18,7 @@ export async function GET(request) {
         const store = await prisma.store.findFirst({
             where: {
                 username,
+                // Only approved and active stores are visible to customers.
                 status: "approved",
                 isActive: true,
             },
@@ -54,6 +56,20 @@ export async function GET(request) {
                         },
                     },
                 },
+                Coupon: {
+                    where: {
+                        isPublic: true,
+                        expiresAt: { gt: new Date() },
+                    },
+                    orderBy: { createdAt: "desc" },
+                    select: {
+                        code: true,
+                        description: true,
+                        discount: true,
+                        expiresAt: true,
+                        storeId: true,
+                    },
+                },
             },
         });
 
@@ -61,11 +77,12 @@ export async function GET(request) {
             return json({ error: "Store not found" }, 404);
         }
 
-        const { Product, ...storeInfo } = store;
+        const { Product, Coupon, ...storeInfo } = store;
 
         return json({
             store: storeInfo,
             products: Product,
+            coupons: Coupon,
         });
     } catch (error) {
         console.error("Failed to fetch store data:", error);

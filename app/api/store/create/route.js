@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { auth } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 
+// API for customers to submit or resubmit a seller store application.
 // Store creation rules.
 const USERNAME_REGEX = /^[a-z0-9_-]{3,30}$/;
 const MAX_LOGO_SIZE = 5 * 1024 * 1024;

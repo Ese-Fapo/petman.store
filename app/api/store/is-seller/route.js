@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { auth } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 
+// API used by layouts/navigation to determine seller access for the current user.
 const json = (body, status = 200) => NextResponse.json(body, { status });
 
 // Return details for the current approved and active seller store.

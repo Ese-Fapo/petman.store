@@ -3,11 +3,14 @@
 import { Star, XIcon } from 'lucide-react';
 import React, { useState } from 'react'
 import toast from 'react-hot-toast';
+import { useDispatch } from 'react-redux';
+import { addRating } from '@/lib/features/rating/ratingSlice';
 
 const RatingModal = ({ ratingModal, setRatingModal }) => {
 
     const [rating, setRating] = useState(0);
     const [review, setReview] = useState('');
+    const dispatch = useDispatch();
 
     const handleSubmit = async () => {
         if (rating < 1 || rating > 5) {
@@ -17,8 +20,29 @@ const RatingModal = ({ ratingModal, setRatingModal }) => {
             throw new Error('Write a short review');
         }
 
+        // The API confirms this user bought the product and the order has been delivered.
+        const response = await fetch('/api/ratings', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                orderId: ratingModal?.orderId,
+                productId: ratingModal?.productId,
+                rating,
+                review,
+            }),
+        });
+        const data = await response.json();
+
+        if (!response.ok) {
+            throw new Error(data.error || 'Failed to submit rating');
+        }
+
+        dispatch(addRating(data.rating));
+        // Update local state immediately so the order page swaps the button for stars.
         setRatingModal(null);
-        return "Rating submitted successfully";
+        return data.message || "Rating submitted successfully";
     }
 
     return (

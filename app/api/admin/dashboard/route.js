@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { auth } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 
+// API for high-level platform metrics shown on the admin dashboard.
 const json = (body, status = 200) => NextResponse.json(body, { status });
 
 // Get dashboard data for admin: total orders, stores, products, revenue, and chart orders.

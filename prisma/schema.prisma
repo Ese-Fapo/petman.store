@@ -69,6 +69,7 @@ model Order {
     isCouponUsed  Boolean       @default(false)
     coupon        Json          @default("{}")
     orderItems    OrderItem[]
+    ratings       Rating[]
 
     // Relations
     user    User    @relation("BuyerRelation", fields: [userId], references: [id])
@@ -104,6 +105,7 @@ model Rating {
     // Relations
     user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
     product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+    order   Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
 
     @@unique([userId, productId, orderId])
 }
@@ -137,6 +139,10 @@ model Coupon {
     isPublic    Boolean
     expiresAt   DateTime
     createdAt   DateTime @default(now())
+    storeId     String?
+
+    // Relations
+    store Store? @relation(fields: [storeId], references: [id], onDelete: Cascade)
 }
 
 // Required for creating a Store: userId, name, username, email, contact, logo, description, address (optional: , status, isActive)
@@ -157,5 +163,6 @@ model Store {
 
     Product Product[]
     Order   Order[]
+    Coupon  Coupon[]
     user    User      @relation(fields: [userId], references: [id])
 }

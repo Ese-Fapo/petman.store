@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { auth } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 
+// API used by the admin store list to activate or deactivate an approved store.
 const json = (body, status = 200) => NextResponse.json(body, { status });
 
 // Keep the API response aligned with the admin store list UI.

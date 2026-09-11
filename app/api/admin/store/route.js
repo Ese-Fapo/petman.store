@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { auth } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 
+// API for admins to manage approved stores and permanent store deletion.
 const json = (body, status = 200) => NextResponse.json(body, { status });
 
 const getAdminAccess = async () => {
@@ -12,6 +13,7 @@ const getAdminAccess = async () => {
         return false;
     }
 
+    // Reuse the same email-based admin check across every handler in this route.
     return authAdmin(userId);
 };
 
@@ -147,6 +149,7 @@ export async function DELETE(request) {
 
         const productIds = store.Product.map((product) => product.id);
 
+        // Delete dependent records first because orders and ratings reference store products.
         await prisma.$transaction([
             prisma.orderItem.deleteMany({
                 where: {

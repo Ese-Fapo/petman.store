@@ -8,6 +8,7 @@ import { useDispatch, useSelector } from "react-redux"
 const mergeCarts = (savedCart, localCart) => {
     const mergedCart = { ...(savedCart || {}) }
 
+    // Preserve local items added before sign-in by adding them to the saved server cart.
     for (const [productId, quantity] of Object.entries(localCart || {})) {
         mergedCart[productId] = (Number(mergedCart[productId]) || 0) + (Number(quantity) || 0)
     }
@@ -28,6 +29,7 @@ const CartSync = () => {
             }
 
             try {
+                // Load once per signed-in session so local updates do not get overwritten repeatedly.
                 const response = await fetch("/api/cart")
                 const data = await response.json()
 
@@ -51,6 +53,7 @@ const CartSync = () => {
             }
 
             try {
+                // After the initial load, persist every cart change for the authenticated user.
                 await fetch("/api/cart", {
                     method: "POST",
                     headers: {

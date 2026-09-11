@@ -11,6 +11,7 @@ const ProductSync = () => {
         const loadProducts = async () => {
             try {
                 dispatch(setProductLoading(true))
+                // Public products are filtered server-side to approved, active stores only.
                 const response = await fetch("/api/products")
                 const data = await response.json()
 

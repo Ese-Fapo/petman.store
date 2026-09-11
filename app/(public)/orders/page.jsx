@@ -4,11 +4,14 @@ import PageTitle from "@/components/PageTitle"
 import { useEffect, useState } from "react";
 import OrderItem from "@/components/OrderItem";
 import toast from "react-hot-toast";
+import { useDispatch } from "react-redux";
+import { setRatings } from "@/lib/features/rating/ratingSlice";
 
 export default function Orders() {
 
     const [orders, setOrders] = useState([]);
     const [loading, setLoading] = useState(true);
+    const dispatch = useDispatch();
 
     useEffect(() => {
         const fetchOrders = async () => {
@@ -22,6 +25,10 @@ export default function Orders() {
                 }
 
                 setOrders(Array.isArray(data.orders) ? data.orders : [])
+                dispatch(setRatings(
+                    (Array.isArray(data.orders) ? data.orders : [])
+                        .flatMap((order) => Array.isArray(order.ratings) ? order.ratings : [])
+                ))
             } catch (error) {
                 toast.error(error.message || "Failed to fetch orders")
             } finally {
@@ -30,7 +37,7 @@ export default function Orders() {
         }
 
         fetchOrders()
-    }, []);
+    }, [dispatch]);
 
     return loading ? <Loading /> : (
         <div className="min-h-[70vh] mx-6">

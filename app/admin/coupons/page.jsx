@@ -167,6 +167,7 @@ export default function AdminCoupons() {
                                 <th className="py-3 px-4 text-left font-semibold text-slate-600">Description</th>
                                 <th className="py-3 px-4 text-left font-semibold text-slate-600">Discount</th>
                                 <th className="py-3 px-4 text-left font-semibold text-slate-600">Expires At</th>
+                                <th className="py-3 px-4 text-left font-semibold text-slate-600">Scope</th>
                                 <th className="py-3 px-4 text-left font-semibold text-slate-600">New User</th>
                                 <th className="py-3 px-4 text-left font-semibold text-slate-600">For Member</th>
                                 <th className="py-3 px-4 text-left font-semibold text-slate-600">Public</th>
@@ -176,7 +177,7 @@ export default function AdminCoupons() {
                         <tbody className="divide-y divide-slate-200">
                             {loading ? (
                                 <tr>
-                                    <td colSpan={8} className="py-8 px-4 text-center text-slate-400">Loading coupons...</td>
+                                    <td colSpan={9} className="py-8 px-4 text-center text-slate-400">Loading coupons...</td>
                                 </tr>
                             ) : coupons.length ? coupons.map((coupon) => (
                                 <tr key={coupon.code} className="hover:bg-slate-50">
@@ -184,6 +185,7 @@ export default function AdminCoupons() {
                                     <td className="py-3 px-4 text-slate-800">{coupon.description}</td>
                                     <td className="py-3 px-4 text-slate-800">{coupon.discount}%</td>
                                     <td className="py-3 px-4 text-slate-800">{format(new Date(coupon.expiresAt), 'yyyy-MM-dd')}</td>
+                                    <td className="py-3 px-4 text-slate-800">{coupon.store?.name || 'Platform'}</td>
                                     <td className="py-3 px-4 text-slate-800">{coupon.forNewUser ? 'Yes' : 'No'}</td>
                                     <td className="py-3 px-4 text-slate-800">{coupon.forMember ? 'Yes' : 'No'}</td>
                                     <td className="py-3 px-4 text-slate-800">{coupon.isPublic ? 'Yes' : 'No'}</td>
@@ -197,7 +199,7 @@ export default function AdminCoupons() {
                                 </tr>
                             )) : (
                                 <tr>
-                                    <td colSpan={8} className="py-8 px-4 text-center text-slate-400">No coupons available</td>
+                                    <td colSpan={9} className="py-8 px-4 text-center text-slate-400">No coupons available</td>
                                 </tr>
                             )}
                         </tbody>

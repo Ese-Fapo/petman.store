@@ -2,7 +2,7 @@ import { deleteCouponOnExpiry, syncUserCreation, syncUserDeletion, syncUserUpdat
 import { inngest } from '@/inngest/client'
 import { serve } from 'inngest/next'
 
-// Create an API route that serves Inngest functions.
+// API endpoint where Inngest invokes background functions such as user sync and coupon expiry.
 export const { GET, POST, PUT } = serve({
   client: inngest,
   functions: [

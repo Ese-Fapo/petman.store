@@ -3,6 +3,7 @@ import { calculateDeliveryFee } from "@/lib/deliveryFee";
 import { auth } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 
+// API for buyer order history and checkout order creation.
 const VALID_PAYMENT_METHODS = ["COD"];
 
 const json = (body, status = 200) => NextResponse.json(body, { status });
@@ -22,6 +23,18 @@ const orderSelect = {
             product: true,
         },
     },
+    ratings: {
+        select: {
+            id: true,
+            rating: true,
+            review: true,
+            userId: true,
+            productId: true,
+            orderId: true,
+            createdAt: true,
+            updatedAt: true,
+        },
+    },
 };
 
 const getCurrentUserId = async () => {
@@ -34,6 +47,7 @@ const getCurrentAccess = async () => {
 
     return {
         userId: userId || null,
+        // Clerk plan checks let Plus customers receive free delivery at checkout.
         isPlusSubscriber: Boolean(userId && has({ plan: "plus" })),
     };
 };
@@ -55,6 +69,7 @@ const normalizeOrderItems = (items) => {
         return [];
     }
 
+    // Merge duplicate cart lines so each product is written once per order.
     const normalizedItems = new Map();
 
     for (const item of items) {
@@ -145,6 +160,7 @@ export async function POST(request) {
                 where: { code: normalizedCouponCode },
             });
 
+            // Coupon restrictions are checked again on the server so users cannot bypass them in the browser.
             const couponAccessError = getCouponAccessError(coupon, isPlusSubscriber);
 
             if (couponAccessError) {
@@ -191,6 +207,7 @@ export async function POST(request) {
             return json({ error: "One or more cart items are no longer available" }, 400);
         }
 
+        // Each store gets its own order because every vendor fulfils and ships independently.
         const itemsByStore = new Map();
 
         for (const item of normalizedItems) {
@@ -209,6 +226,10 @@ export async function POST(request) {
             itemsByStore.set(product.storeId, storeItems);
         }
 
+        if (coupon?.storeId && !itemsByStore.has(coupon.storeId)) {
+            return json({ error: "Coupon does not apply to any shop in this cart" }, 400);
+        }
+
         const orders = await prisma.$transaction(async (tx) => {
             const createdOrders = [];
 
@@ -217,7 +238,8 @@ export async function POST(request) {
                     (sum, item) => sum + item.price * item.quantity,
                     0
                 );
-                const discount = coupon ? coupon.discount / 100 * subtotal : 0;
+                const couponAppliesToOrder = Boolean(coupon && (!coupon.storeId || coupon.storeId === storeId));
+                const discount = couponAppliesToOrder ? coupon.discount / 100 * subtotal : 0;
                 const delivery = calculateDeliveryFee({
                     storeAddress: storeOrder.storeAddress,
                     customerAddress: address,
@@ -226,6 +248,7 @@ export async function POST(request) {
                 const orderShippingFee = isPlusSubscriber ? 0 : delivery.fee;
                 const total = Math.max(subtotal - discount, 0) + orderShippingFee;
 
+                // Store pricing, coupon, and delivery details in the order snapshot for later audits.
                 const order = await tx.order.create({
                     data: {
                         total,
@@ -234,8 +257,8 @@ export async function POST(request) {
                         addressId,
                         isPaid: false,
                         paymentMethod,
-                        isCouponUsed: Boolean(coupon),
-                        coupon: coupon
+                        isCouponUsed: couponAppliesToOrder,
+                        coupon: couponAppliesToOrder
                             ? {
                                 code: coupon.code,
                                 description: coupon.description,
@@ -243,6 +266,7 @@ export async function POST(request) {
                                 forMember: coupon.forMember,
                                 forNewUser: coupon.forNewUser,
                                 isPublic: coupon.isPublic || (!coupon.forNewUser && !coupon.forMember),
+                                storeId: coupon.storeId,
                                 shippingFee: orderShippingFee,
                                 subtotal,
                                 delivery,

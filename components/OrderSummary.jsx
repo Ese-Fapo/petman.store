@@ -8,6 +8,7 @@ import { deleteAddress } from '@/lib/features/address/addressSlice';
 import { clearCart } from '@/lib/features/cart/cartSlice';
 import { Show } from '@clerk/nextjs';
 import { IRELAND_DELIVERY_RULES, calculateCartDelivery } from '@/lib/deliveryFee';
+import StoreCoupons from './StoreCoupons';
 
 const OrderSummary = ({ totalPrice, items, vendorCount = 0 }) => {
 
@@ -26,8 +27,21 @@ const OrderSummary = ({ totalPrice, items, vendorCount = 0 }) => {
     const [isApplyingCoupon, setIsApplyingCoupon] = useState(false);
     const [isPlacingOrder, setIsPlacingOrder] = useState(false);
 
-    const couponDiscount = coupon ? coupon.discount / 100 * totalPrice : 0;
+    const couponEligibleSubtotal = useMemo(() => {
+        if (!coupon?.storeId) {
+            return totalPrice;
+        }
+
+        return items.reduce((sum, item) => {
+            const storeId = item.store?.id || item.storeId;
+            return storeId === coupon.storeId ? sum + Number(item.price || 0) * Number(item.quantity || 0) : sum;
+        }, 0);
+    }, [coupon, items, totalPrice]);
+    const couponDiscount = coupon ? coupon.discount / 100 * couponEligibleSubtotal : 0;
     const plusTotal = Math.max(totalPrice - couponDiscount, 0);
+
+    // Recalculate delivery whenever the address or cart items change.
+    
     const deliverySummary = useMemo(() => calculateCartDelivery({
         items,
         customerAddress: selectedAddress,
@@ -35,15 +49,31 @@ const OrderSummary = ({ totalPrice, items, vendorCount = 0 }) => {
     const hasDeliveryEstimate = Boolean(selectedAddress?.id);
     const deliveryTotal = hasDeliveryEstimate ? deliverySummary.totalFee : 0;
     const standardTotal = plusTotal + deliveryTotal;
+    const availableCoupons = useMemo(() => {
+        const couponsByCode = new Map();
+
+        for (const item of items) {
+            const coupons = Array.isArray(item.store?.coupons) ? item.store.coupons : [];
+
+            for (const itemCoupon of coupons) {
+                if (!couponsByCode.has(itemCoupon.code)) {
+                    couponsByCode.set(itemCoupon.code, {
+                        ...itemCoupon,
+                        store: item.store,
+                    });
+                }
+            }
+        }
+
+        return [...couponsByCode.values()];
+    }, [items]);
     const formatMoney = (amount) => `${currency}${Number(amount).toLocaleString(undefined, {
         minimumFractionDigits: 2,
         maximumFractionDigits: 2,
     })}`;
 
-    const handleCouponCode = async (event) => {
-        event.preventDefault();
-
-        const code = couponCodeInput.trim()
+    const applyCouponCode = async (codeValue) => {
+        const code = codeValue.trim()
 
         if (!code) {
             throw new Error('Enter a coupon code')
@@ -51,6 +81,7 @@ const OrderSummary = ({ totalPrice, items, vendorCount = 0 }) => {
 
         try {
             setIsApplyingCoupon(true)
+            // The API validates expiry, membership, and new-customer restrictions server-side.
             const response = await fetch(`/api/coupon?code=${encodeURIComponent(code)}`)
             const data = await response.json()
 
@@ -58,11 +89,25 @@ const OrderSummary = ({ totalPrice, items, vendorCount = 0 }) => {
                 throw new Error(data.error || 'Failed to apply coupon')
             }
 
+            if (data.coupon?.storeId) {
+                const hasMatchingStore = items.some((item) => (item.store?.id || item.storeId) === data.coupon.storeId)
+
+                if (!hasMatchingStore) {
+                    throw new Error('Coupon does not apply to any shop in this cart')
+                }
+            }
+
             setCoupon(data.coupon)
+            setCouponCodeInput(data.coupon.code)
             return data.message || 'Coupon applied successfully'
         } finally {
             setIsApplyingCoupon(false)
         }
+    }
+
+    const handleCouponCode = async (event) => {
+        event.preventDefault();
+        return applyCouponCode(couponCodeInput)
     }
 
     const handlePlaceOrder = async (e) => {
@@ -82,6 +127,7 @@ const OrderSummary = ({ totalPrice, items, vendorCount = 0 }) => {
 
         try {
             setIsPlacingOrder(true)
+            // Send only product ids and quantities; the server re-reads prices from the database.
             const response = await fetch("/api/orders", {
                 method: "POST",
                 headers: {
@@ -112,6 +158,7 @@ const OrderSummary = ({ totalPrice, items, vendorCount = 0 }) => {
     }
 
     const handleDeleteAddress = async (addressId) => {
+        // Address ownership is checked by the API before deletion.
         const response = await fetch("/api/address", {
             method: "DELETE",
             headers: {
@@ -243,18 +290,35 @@ const OrderSummary = ({ totalPrice, items, vendorCount = 0 }) => {
                 </div>
                 {
                     !coupon ? (
-                        <form onSubmit={e => toast.promise(handleCouponCode(e), {
-                            loading: 'Checking Coupon...',
-                            success: (message) => message || 'Coupon applied successfully',
-                            error: (error) => error.message || 'Failed to apply coupon',
-                        })} className='mt-3 grid gap-3 sm:grid-cols-[1fr_auto]'>
-                            <input onChange={(e) => setCouponCodeInput(e.target.value)} value={couponCodeInput} type="text" placeholder='Coupon Code' className='min-w-0 border border-slate-400 p-1.5 rounded w-full outline-none' />
-                            <button type="submit" disabled={isApplyingCoupon} className='bg-slate-600 text-white px-3 py-1.5 rounded hover:bg-slate-800 active:scale-95 transition-all disabled:cursor-not-allowed disabled:bg-slate-300'>{isApplyingCoupon ? 'Checking' : 'Apply'}</button>
-                        </form>
+                        <div className='mt-3 space-y-3'>
+                            <form onSubmit={e => toast.promise(handleCouponCode(e), {
+                                loading: 'Checking Coupon...',
+                                success: (message) => message || 'Coupon applied successfully',
+                                error: (error) => error.message || 'Failed to apply coupon',
+                            })} className='grid gap-3 sm:grid-cols-[1fr_auto]'>
+                                <input onChange={(e) => setCouponCodeInput(e.target.value)} value={couponCodeInput} type="text" placeholder='Coupon Code' className='min-w-0 border border-slate-400 p-1.5 rounded w-full outline-none' />
+                                <button type="submit" disabled={isApplyingCoupon} className='bg-slate-600 text-white px-3 py-1.5 rounded hover:bg-slate-800 active:scale-95 transition-all disabled:cursor-not-allowed disabled:bg-slate-300'>{isApplyingCoupon ? 'Checking' : 'Apply'}</button>
+                            </form>
+                            {availableCoupons.length > 0 && (
+                                <div>
+                                    <p className='mb-2 text-xs font-medium text-slate-500'>Available store coupons</p>
+                                    <StoreCoupons
+                                        coupons={availableCoupons}
+                                        compact
+                                        onApply={(code) => toast.promise(applyCouponCode(code), {
+                                            loading: 'Applying coupon...',
+                                            success: (message) => message || 'Coupon applied successfully',
+                                            error: (error) => error.message || 'Failed to apply coupon',
+                                        })}
+                                    />
+                                </div>
+                            )}
+                        </div>
                     ) : (
                         <div className='w-full flex flex-wrap items-center justify-center gap-2 text-xs mt-2'>
                             <p>Code: <span className='font-semibold ml-1'>{coupon.code.toUpperCase()}</span></p>
                             <p>{coupon.description}</p>
+                            {coupon.store?.name && <p>Applies to {coupon.store.name}</p>}
                             <XIcon size={18} onClick={() => setCoupon(null)} className='hover:text-red-700 transition cursor-pointer' />
                         </div>
                     )

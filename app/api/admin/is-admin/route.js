@@ -2,6 +2,7 @@ import authAdmin from "@/middlewares/authAdmin";
 import { auth } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 
+// Lightweight API used by the UI to reveal admin-only navigation.
 const json = (body, status = 200) => NextResponse.json(body, { status });
 
 // Verify whether the current user is configured as an admin.

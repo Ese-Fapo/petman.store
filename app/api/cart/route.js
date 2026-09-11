@@ -2,6 +2,7 @@ import { prisma } from "@/lib/prisma";
 import { auth } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 
+// API for persisting the signed-in user's cart between sessions.
 const json = (body, status = 200) => NextResponse.json(body, { status });
 
 const normalizeCart = (cart) => {
@@ -9,6 +10,7 @@ const normalizeCart = (cart) => {
     return {};
   }
 
+  // Keep only positive integer quantities keyed by product id.
   return Object.fromEntries(
     Object.entries(cart)
       .map(([productId, quantity]) => [productId, Number(quantity)])
@@ -38,6 +40,7 @@ export async function POST(request) {
     const { cart } = await request.json();
     const normalizedCart = normalizeCart(cart);
 
+    // Do not create a user here; the Clerk webhook is responsible for profile sync.
     const user = await prisma.user.findUnique({
       where: { id: userId },
       select: { id: true },
@@ -76,6 +79,7 @@ export async function GET() {
       select: { cart: true },
     });
 
+    // Missing local user usually means the Clerk user webhook has not synced yet.
     if (!user) {
       return json({ error: "User not found" }, 404);
     }

@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { auth } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 
+// API for admins to review seller store applications.
 const VALID_STATUSES = ["approved", "rejected"];
 
 const json = (body, status = 200) => NextResponse.json(body, { status });
@@ -14,6 +15,7 @@ const getAdminAccess = async () => {
         return false;
     }
 
+    // Centralize admin authorization so GET and POST follow the same rule.
     return authAdmin(userId);
 };
 
@@ -71,6 +73,7 @@ export async function POST(request) {
             return json({ error: "Approved stores can be managed from the stores page" }, 400);
         }
 
+        // Rejected stores stay visible for reconsideration, but cannot be rejected twice.
         if (existingStore.status === "rejected" && status !== "approved") {
             return json({ error: "Rejected stores can only be approved from this page" }, 400);
         }
@@ -79,6 +82,7 @@ export async function POST(request) {
             where: { id: storeId },
             data: {
                 status,
+                // Approved stores go live immediately; rejected stores are kept inactive.
                 isActive: status === "approved",
             },
             select: storeSelect,

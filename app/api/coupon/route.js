@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { auth } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 
+// API for admin/platform coupon management and buyer coupon validation at checkout.
 const json = (body, status = 200) => NextResponse.json(body, { status });
 
 const getSubscriptionAccess = async () => {
@@ -11,6 +12,7 @@ const getSubscriptionAccess = async () => {
 
     return {
         userId: userId || null,
+        // Membership-only coupons use Clerk plan checks instead of trusting client input.
         isPlusSubscriber: Boolean(userId && has({ plan: "plus" })),
     };
 };
@@ -45,6 +47,7 @@ const validateCouponAccess = async (coupon, { userId, isPlusSubscriber }) => {
     }
 
     if (coupon.forNewUser) {
+        // New-customer coupons require sign-in so previous orders can be checked.
         if (!userId) {
             return { error: "Sign in to use this new customer coupon", status: 401 };
         }
@@ -74,6 +77,7 @@ const normalizeCoupon = (coupon) => {
     const forMember = Boolean(coupon?.forMember);
     const isPublic = Boolean(coupon?.isPublic) || (!forNewUser && !forMember);
 
+    // Admin-created coupons must have a valid code, description, discount, and expiry date.
     if (!code || !description || !Number.isFinite(discount) || discount < 1 || discount > 100 || Number.isNaN(expiresAt.getTime())) {
         return null;
     }
@@ -86,6 +90,7 @@ const normalizeCoupon = (coupon) => {
         forMember,
         isPublic,
         expiresAt,
+        storeId: null,
     };
 };
 
@@ -106,6 +111,9 @@ export async function POST(request) {
         }
 
         const createdCoupon = await prisma.coupon.create({ data: normalizedCoupon });
+
+        // Inngest handles expiry cleanup outside the request lifecycle.
+
         await inngest.send({
             name: "app/coupon.expired",
             data: {
@@ -126,6 +134,7 @@ export async function POST(request) {
 }
 
 // Delete coupon /api/coupon?code=COUPONCODE.
+
 export async function DELETE(request) {
     try {
         const isAdmin = await getAdminAccess();
@@ -159,9 +168,19 @@ export async function GET(request) {
         const code = request.nextUrl.searchParams.get("code")?.trim().toUpperCase();
 
         if (code) {
+            // When a code is supplied, this GET acts as a buyer-facing coupon validation endpoint.
             const access = await getSubscriptionAccess();
             const coupon = await prisma.coupon.findUnique({
                 where: { code },
+                include: {
+                    store: {
+                        select: {
+                            id: true,
+                            name: true,
+                            username: true,
+                        },
+                    },
+                },
             });
 
             const couponAccessError = await validateCouponAccess(coupon, access);
@@ -187,6 +206,15 @@ export async function GET(request) {
 
         const coupons = await prisma.coupon.findMany({
             orderBy: { createdAt: "desc" },
+            include: {
+                store: {
+                    select: {
+                        id: true,
+                        name: true,
+                        username: true,
+                    },
+                },
+            },
         });
 
         return json({ coupons });
