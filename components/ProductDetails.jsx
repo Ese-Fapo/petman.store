@@ -86,7 +86,7 @@ const ProductDetails = ({ product }) => {
                 <div className="flex flex-col gap-4 text-slate-500">
                     <p className="flex gap-3"> <EarthIcon className="text-slate-400" /> Distance-based Ireland delivery shown clearly at checkout </p>
                     <p className="flex gap-3"> <CreditCardIcon className="text-slate-400" /> 100% Secured Payment </p>
-                    <p className="flex gap-3"> <UserIcon className="text-slate-400" /> Trusted by Irish pet owners </p>
+                    <p className="flex gap-3"> <UserIcon className="text-slate-400" /> Discover products from independent sellers </p>
                 </div>
             </div>
         </div>

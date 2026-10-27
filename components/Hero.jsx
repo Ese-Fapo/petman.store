@@ -1,73 +1,34 @@
-'use client'
-import { assets } from '@/assets/assets'
-import { ArrowRightIcon, ChevronRightIcon } from 'lucide-react'
-import Image from 'next/image'
-import React from 'react'
-import CategoriesMarquee from './CategoriesMarquee'
+import Link from 'next/link'
+import { ArrowRight, ArrowUpRight, Store, PackageCheck, Layers3 } from 'lucide-react'
 
-const Hero = () => {
-
-    const currency = process.env.NEXT_PUBLIC_CURRENCY_SYMBOL || 'EUR'
-
-    return (
-        <div className='mx-6 xl:mx-10'>
-            <div className='flex max-xl:flex-col gap-8 max-w-7xl mx-auto my-10 xl:my-12 xl:grid xl:grid-cols-[minmax(0,1fr)_350px] xl:items-stretch xl:gap-6'>
-                <div className='relative flex-1 flex flex-col overflow-hidden bg-green-100 rounded-3xl xl:min-h-[540px] xl:bg-[#f3f8ed] xl:rounded-[2rem] xl:border xl:border-emerald-900/10 xl:shadow-[0_24px_70px_rgba(15,23,42,0.10)] group'>
-                    <div className='p-5 sm:p-16 xl:relative xl:z-10 xl:max-w-[560px] xl:p-12 xl:pr-0'>
-                        <div className='inline-flex items-center gap-3 bg-white/80 text-green-700 pr-4 p-1 rounded-full text-xs sm:text-sm xl:bg-emerald-950 xl:text-white xl:shadow-sm'>
-                            <span className='bg-green-600 px-3 py-1 max-sm:ml-1 rounded-full text-white text-xs xl:bg-orange-400 xl:text-slate-950 xl:font-semibold'>KEDEL</span> Fast  delivery on all orders   <ChevronRightIcon className='group-hover:ml-2 transition-all' size={16} />
-                        </div>
-                        <h2 className='text-3xl sm:text-5xl leading-[1.2] my-3 font-medium text-slate-800 max-w-xs sm:max-w-md xl:max-w-xl xl:text-6xl xl:leading-[1.04] xl:my-6 xl:tracking-normal'>
-                            Pet food, toys and care for Ireland's best-loved companions.
-                        </h2>
-                        <div className='text-slate-800 text-sm font-medium mt-4 sm:mt-8 xl:flex xl:items-end xl:gap-3 xl:mt-7'>
-                            <p>Starts from</p>
-                            <p className='text-3xl xl:text-5xl'>{currency}8</p>
-                        </div>
-                        <button className='bg-slate-800 text-white text-sm py-2.5 px-7 sm:py-5 sm:px-12 mt-4 sm:mt-10 rounded-md hover:bg-slate-900 hover:scale-103 active:scale-95 transition xl:mt-9 xl:inline-flex xl:items-center xl:gap-3 xl:bg-orange-500 xl:px-9 xl:py-4 xl:text-slate-950 xl:font-semibold xl:hover:bg-orange-400'>SHOP NOW <ArrowRightIcon className='hidden xl:block' size={18} /></button>
-                        <div className='hidden xl:flex xl:items-center xl:gap-8 xl:mt-12 xl:text-sm xl:text-slate-700'>
-                            <div>
-                                <p className='text-2xl font-semibold text-slate-950'>2K+</p>
-                                <p>happy customers</p>
-                            </div>
-                            <div className='h-10 w-px bg-slate-300' />
-                            <div>
-                                <p className='text-2xl font-semibold text-slate-950'>24h</p>
-                                <p>fast dispatch</p>
-                            </div>
-                            <div className='h-10 w-px bg-slate-300' />
-                            <div>
-                                <p className='text-2xl font-semibold text-slate-950'>4.9</p>
-                                <p>care rating</p>
-                            </div>
-                        </div>
-                    </div>
-                    <div className='hidden xl:block absolute inset-y-8 right-8 w-[44%] overflow-hidden rounded-[1.5rem] bg-slate-950 shadow-2xl'>
-                        <Image className='h-full w-full object-cover object-center opacity-95 transition duration-500 group-hover:scale-105' src={assets.hero_model_img} alt="Cat resting beside pet shop supplies" loading="eager" fetchPriority="high" />
-                    </div>
-                    <Image className='sm:absolute bottom-0 right-0 md:right-6 w-full sm:max-w-md h-72 sm:h-full object-cover object-center xl:hidden' src={assets.hero_model_img} alt="Cat resting beside pet shop supplies" loading="eager" fetchPriority="high" />
-                </div>
-                <div className='flex flex-col md:flex-row xl:flex-col gap-5 w-full xl:max-w-none xl:gap-6 text-sm text-slate-600'>
-                    <div className='flex-1 flex items-center justify-between w-full bg-orange-200 rounded-3xl p-6 px-8 xl:relative xl:min-h-[257px] xl:overflow-hidden xl:bg-slate-950 xl:text-slate-300 xl:p-8 xl:rounded-[1.75rem] group'>
-                        <div>
-                            <p className='text-3xl font-medium text-slate-800 max-w-40 xl:text-white xl:max-w-44'>Toys they will chase</p>
-                            <p className='flex items-center gap-1 mt-4 xl:text-orange-300'>View more <ArrowRightIcon className='group-hover:ml-2 transition-all' size={18} /> </p>
-                        </div>
-                        <Image className='w-35 xl:absolute xl:-right-3 xl:bottom-3 xl:w-40 xl:rotate-[-8deg]' src={assets.hero_product_img1} alt="Dog toy" />
-                    </div>
-                    <div className='flex-1 flex items-center justify-between w-full bg-blue-200 rounded-3xl p-6 px-8 xl:relative xl:min-h-[257px] xl:overflow-hidden xl:bg-[#dcebf7] xl:p-8 xl:rounded-[1.75rem] xl:border xl:border-sky-900/10 group'>
-                        <div>
-                            <p className='text-3xl font-medium text-slate-800 max-w-40 xl:max-w-48'>20% off first orders</p>
-                            <p className='flex items-center gap-1 mt-4 xl:text-sky-800'>View more <ArrowRightIcon className='group-hover:ml-2 transition-all' size={18} /> </p>
-                        </div>
-                        <Image className='w-35 xl:absolute xl:-right-4 xl:bottom-2 xl:w-44' src={assets.hero_product_img2} alt="Pet food" />
-                    </div>
-                </div>
-            </div>
-            <CategoriesMarquee />
+export default function Hero() {
+  return (
+    <section className="mx-auto max-w-7xl px-4 pt-6 sm:px-6 sm:pt-8">
+      <div className="grid gap-4 lg:grid-cols-[1fr_300px]">
+        <div className="relative isolate overflow-hidden rounded-3xl bg-[#eae8df]">
+          <img src="https://images.unsplash.com/photo-1600210492486-724fe5c67fb0?auto=format&fit=crop&w=1600&q=85" alt="A living room with neutral sofas, lighting and natural wood" className="absolute inset-0 -z-20 h-full w-full object-cover object-right" fetchPriority="high" />
+          <div className="absolute inset-0 -z-10 bg-gradient-to-r from-[#eeeee6] via-[#eeeee6]/95 to-[#eeeee6]/5" />
+          <div className="max-w-xl px-7 py-12 sm:px-12 sm:py-16">
+            <span className="inline-flex items-center gap-2 rounded-full border border-emerald-900/15 bg-white/70 px-3 py-1.5 text-xs font-medium text-emerald-900"><span className="size-1.5 rounded-full bg-emerald-700" /> MANY STORES. ENDLESS POSSIBILITIES.</span>
+            <h1 className="mt-6 text-5xl font-semibold leading-[1.06] tracking-tight text-[#173d32] sm:text-6xl">A little of everything.<br /><span className="text-emerald-700">A lot to love.</span></h1>
+            <p className="mt-5 max-w-sm text-base leading-relaxed text-slate-600">From everyday essentials to your next great find. Shop for your home, your family, and everything in between.</p>
+            <Link href="/shop" className="mt-7 inline-flex items-center gap-5 rounded-full bg-[#173d32] px-7 py-3.5 text-sm font-medium text-white transition hover:bg-emerald-800">Explore the marketplace <ArrowRight size={18} /></Link>
+            <p className="mt-8 flex items-center gap-2 text-xs text-slate-600"><Layers3 size={16} /> 24 departments. One place to discover them all.</p>
+          </div>
         </div>
-
-    )
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-1">
+          <Link href="/shop?category=Kitchen%20%26%20Dining" className="group relative min-h-52 overflow-hidden rounded-3xl bg-[#f1e7db] p-6">
+            <img src="https://images.unsplash.com/photo-1556911220-bff31c812dba?auto=format&fit=crop&w=650&q=80" alt="Kitchen workspace and cooking essentials" className="absolute inset-0 h-full w-full object-cover" />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-black/5" />
+            <div className="relative flex h-full min-h-40 flex-col justify-end text-white"><p className="text-xs uppercase tracking-widest text-white/80">Made for everyday</p><h2 className="mt-2 text-2xl font-medium">Good things<br />start at home.</h2><span className="mt-3 inline-flex items-center gap-2 text-sm">Shop kitchen & dining <ArrowUpRight size={17} /></span></div>
+          </Link>
+          <Link href="/create-store" className="group flex min-h-52 flex-col justify-between rounded-3xl bg-[#f3dba6] p-6 text-[#473818]">
+            <div className="flex items-center justify-between"><Store size={27} strokeWidth={1.5} /><ArrowUpRight size={22} /></div>
+            <div className="mt-5"><p className="text-xs uppercase tracking-widest">For independent sellers</p><h2 className="mt-2 text-2xl font-medium leading-tight">Your products.<br />Their next favorite.</h2><p className="mt-3 text-sm">Open your shop on shopSmart</p></div>
+          </Link>
+        </div>
+      </div>
+      <div className="mt-5 flex flex-wrap justify-between gap-4 border-b border-slate-200 py-5 text-xs text-slate-600 sm:text-sm"><span className="flex items-center gap-2"><Store size={18} /> Discover independent stores</span><span className="flex items-center gap-2"><Layers3 size={18} /> More choice for every room</span><span className="flex items-center gap-2"><PackageCheck size={18} /> Your essentials, all together</span></div>
+    </section>
+  )
 }
-
-export default Hero

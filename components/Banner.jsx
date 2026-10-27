@@ -1,31 +1,4 @@
-'use client'
-import React from 'react'
-import toast from 'react-hot-toast';
-
+import Link from 'next/link'
 export default function Banner() {
-
-    const [isOpen, setIsOpen] = React.useState(true);
-
-    const handleClaim = () => {
-        setIsOpen(false);
-        toast.success('Coupon copied to clipboard!');
-        navigator.clipboard.writeText('NEW20');
-    };
-
-    return isOpen && (
-        <div className="w-full px-3 py-2 sm:px-6 sm:py-1 font-medium text-sm text-white text-center bg-gradient-to-r from-green-700 via-emerald-600 to-orange-500">
-            <div className='flex flex-wrap items-center justify-center gap-2 sm:justify-between max-w-7xl mx-auto'>
-                <p className="leading-snug">Get 20% off your  2nd  order .</p>
-                <div className="flex items-center gap-3 sm:gap-6">
-                    <button onClick={handleClaim} type="button" className="font-normal text-gray-800 bg-white px-4 py-2 sm:px-7 rounded-full whitespace-nowrap">Claim Offer</button>
-                    <button onClick={() => setIsOpen(false)} type="button" className="font-normal text-gray-800 py-2 rounded-full">
-                        <svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <rect y="12.532" width="17.498" height="2.1" rx="1.05" transform="rotate(-45.74 0 12.532)" fill="#fff" />
-                            <rect x="12.533" y="13.915" width="17.498" height="2.1" rx="1.05" transform="rotate(-135.74 12.533 13.915)" fill="#fff" />
-                        </svg>
-                    </button>
-                </div>
-            </div>
-        </div>
-    );
-};
+  return <div className="bg-[#173d32] px-4 py-2.5 text-center text-xs text-white sm:text-sm">Everything for your everyday. <span className="text-emerald-200">Discover more on shopSmart.</span> <Link href="/shop" className="ml-3 underline underline-offset-4">Start exploring &rarr;</Link></div>
+}

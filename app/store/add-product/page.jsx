@@ -1,5 +1,6 @@
 'use client'
 
+import { departments } from "@/lib/catalog";
 import { assets } from "@/assets/assets"
 import Image from "next/image"
 import { useState } from "react"
@@ -7,7 +8,6 @@ import { toast } from "react-hot-toast"
 
 export default function StoreAddProduct() {
 
-    const categories = ['Dog Food', 'Cat Food', 'Treats', 'Toys', 'Bird Care', 'Small Pets', 'Bowls', 'Supplements', 'Grooming', 'Beds', 'Others']
     const currency = process.env.NEXT_PUBLIC_CURRENCY_SYMBOL || 'EUR'
 
     const [images, setImages] = useState({ 1: null, 2: null, 3: null, 4: null })
@@ -110,8 +110,10 @@ export default function StoreAddProduct() {
 
             <select onChange={e => setProductInfo({ ...productInfo, category: e.target.value })} value={productInfo.category} className="w-full max-w-sm p-2 px-4 my-6 outline-none border border-slate-200 rounded" required>
                 <option value="">Select a category</option>
-                {categories.map((category) => (
-                    <option key={category} value={category}>{category}</option>
+                {departments.map(department => (
+                  <optgroup key={department.name} label={department.name}>
+                    {[department.name, ...department.categories].map(category => <option key={category} value={category}>{category}</option>)}
+                  </optgroup>
                 ))}
             </select>
 

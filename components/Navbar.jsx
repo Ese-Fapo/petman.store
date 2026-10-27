@@ -33,9 +33,9 @@ const Navbar = () => {
     const isSeller = Boolean(sellerStore)
 
     const primaryLinks = useMemo(() => [
-        { label: "Home", href: "/", icon: HomeIcon },
+        { label: "Categories", href: "/#categories", icon: HomeIcon },
         { label: "Shop", href: "/shop", icon: ShoppingBagIcon },
-        { label: "Pet Care Club", href: "/pricing", icon: PackageIcon },
+        { label: "Sell with us", href: "/create-store", icon: StoreIcon },
     ], [])
 
     const roleLinks = useMemo(() => {
@@ -52,6 +52,9 @@ const Navbar = () => {
             ...(!isAdmin && !isSeller ? [{ label: "Become a Seller", href: "/create-store", icon: StoreIcon }] : []),
         ]
     }, [isAdmin, isSeller, sellerStore?.name, user])
+
+    // Seller signup is already in the primary navigation; keep it in the account menu too.
+    const navigationRoleLinks = roleLinks.filter(link => !primaryLinks.some(primary => primary.href === link.href))
 
     const handleSearch = (e) => {
         e.preventDefault()
@@ -131,7 +134,7 @@ const Navbar = () => {
             <div className="mx-auto max-w-7xl px-4 sm:px-6">
                 <div className="flex min-h-16 items-center justify-between gap-3 lg:min-h-20">
                     <Link href="/" className="relative shrink-0 text-2xl font-semibold tracking-normal text-slate-800 sm:text-3xl">
-                        JUST<span className="text-green-600">PETS</span><span className="text-green-600">.</span>
+                        shop<span className="text-green-600">Smart</span><span className="text-green-600">.</span>
                         <Show when={{ plan: "plus" }}>
                             <span className="absolute -right-10 -top-1 rounded-full bg-green-600 px-2 py-0.5 text-[10px] font-semibold text-white">
                                 plus
@@ -140,13 +143,13 @@ const Navbar = () => {
                     </Link>
 
                     <div className="hidden min-w-0 flex-1 items-center justify-center gap-1 lg:flex">
-                        {[...primaryLinks, ...roleLinks.slice(0, 2)].map((link) => renderNavLink(link))}
+                        {[...primaryLinks, ...navigationRoleLinks.slice(0, 2)].map((link) => renderNavLink(link))}
                     </div>
 
                     <div className="hidden items-center gap-3 lg:flex">
-                        <form onSubmit={handleSearch} className="hidden items-center gap-2 rounded-full bg-slate-100 px-4 py-2.5 text-sm xl:flex xl:w-64">
+                        <form onSubmit={handleSearch} className="hidden items-center gap-2 rounded-full bg-slate-100 px-4 py-2.5 text-sm xl:flex xl:w-72">
                             <Search size={18} className="shrink-0 text-slate-500" />
-                            <input className="w-full bg-transparent outline-none placeholder:text-slate-500" type="text" placeholder="Search pet essentials" value={search} onChange={(e) => setSearch(e.target.value)} required />
+                            <input className="w-full bg-transparent outline-none placeholder:text-slate-500" aria-label="Search products" type="search" placeholder="Search anything for your home" value={search} onChange={(e) => setSearch(e.target.value)} required />
                         </form>
 
                         <Link href="/cart" className="relative flex items-center gap-2 rounded-full px-3 py-2 text-sm text-slate-600 transition hover:bg-green-50 hover:text-green-700">
@@ -211,11 +214,11 @@ const Navbar = () => {
                     <div className="mx-auto max-w-7xl px-4 py-4 sm:px-6">
                         <form onSubmit={handleSearch} className="flex items-center gap-2 rounded-full bg-slate-100 px-4 py-3 text-sm">
                             <Search size={18} className="shrink-0 text-slate-500" />
-                            <input className="w-full bg-transparent outline-none placeholder:text-slate-500" type="text" placeholder="Search pet essentials" value={search} onChange={(e) => setSearch(e.target.value)} required />
+                            <input className="w-full bg-transparent outline-none placeholder:text-slate-500" aria-label="Search products" type="search" placeholder="Search anything for your home" value={search} onChange={(e) => setSearch(e.target.value)} required />
                         </form>
 
                         <div className="mt-4 grid gap-2">
-                            {[...primaryLinks, ...roleLinks].map((link) => renderNavLink(link, `flex min-h-11 items-center gap-3 rounded-lg px-3 text-sm transition hover:bg-green-50 hover:text-green-700 ${link.highlight ? "bg-green-50 text-green-700 font-medium" : "text-slate-600"}`))}
+                            {[...primaryLinks, ...navigationRoleLinks].map((link) => renderNavLink(link, `flex min-h-11 items-center gap-3 rounded-lg px-3 text-sm transition hover:bg-green-50 hover:text-green-700 ${link.highlight ? "bg-green-50 text-green-700 font-medium" : "text-slate-600"}`))}
 
                             {user && (
                                 <>

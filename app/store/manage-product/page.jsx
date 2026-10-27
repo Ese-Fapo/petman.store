@@ -3,22 +3,10 @@ import { useEffect, useState } from "react";
 import { toast } from "react-hot-toast";
 import Image from "next/image";
 import Loading from "@/components/Loading";
+import { departments } from "@/lib/catalog";
 import { assets } from "@/assets/assets";
 import { PencilIcon, XIcon } from "lucide-react";
 
-const categories = [
-  "Dog Food",
-  "Cat Food",
-  "Treats",
-  "Toys",
-  "Bird Care",
-  "Small Pets",
-  "Bowls",
-  "Supplements",
-  "Grooming",
-  "Beds",
-  "Others",
-];
 
 const emptyEditForm = {
   id: "",
@@ -381,10 +369,11 @@ export default function StoreManageProducts() {
               required
             >
               <option value="">Select a category</option>
-              {categories.map((category) => (
-                <option key={category} value={category}>
-                  {category}
-                </option>
+              {editForm.category && !departments.some(department => [department.name, ...department.categories].includes(editForm.category)) && <option value={editForm.category}>{editForm.category} (existing category)</option>}
+              {departments.map(department => (
+                <optgroup key={department.name} label={department.name}>
+                  {[department.name, ...department.categories].map(category => <option key={category} value={category}>{category}</option>)}
+                </optgroup>
               ))}
             </select>
 

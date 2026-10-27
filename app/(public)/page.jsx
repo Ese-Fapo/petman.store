@@ -1,4 +1,5 @@
 'use client'
+import CategoryDirectory from "@/components/CategoryDirectory";
 import BestSelling from "@/components/BestSelling";
 import Hero from "@/components/Hero";
 import Newsletter from "@/components/Newsletter";
@@ -10,6 +11,7 @@ export default function Home() {
         <div>
             {/* Public homepage sections shown in browsing order. */}
             <Hero />
+            <CategoryDirectory />
             <LatestProducts />
             <BestSelling />
             <OurSpecs />

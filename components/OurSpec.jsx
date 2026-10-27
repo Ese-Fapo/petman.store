@@ -6,7 +6,7 @@ const OurSpecs = () => {
 
     return (
         <div className='px-6 my-20 max-w-6xl mx-auto'>
-            <Title visibleButton={false} title='Why Pet Owners Choose Us' description="Everything is chosen to make pet shopping simple, reliable, and friendly for homes across Ireland." />
+            <Title visibleButton={false} title='A smarter way to shop' description="Discover more choice, find your everyday essentials, and support independent sellers in one marketplace." />
 
             <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-7 gap-y-10 mt-26'>
                 {

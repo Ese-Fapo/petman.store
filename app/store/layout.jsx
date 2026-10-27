@@ -1,8 +1,8 @@
 import StoreLayout from "@/components/store/StoreLayout";
 
 export const metadata = {
-    title: "JUSTPETS - Store Dashboard",
-    description: "JUSTPETS store dashboard",
+    title: "shopSmart - Store Dashboard",
+    description: "shopSmart store dashboard",
 };
 
 export default function RootStoreLayout({ children }) {

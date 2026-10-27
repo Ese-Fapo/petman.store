@@ -15,13 +15,13 @@ const BestSelling = () => {
         .sort((a, b) => getRatingCount(b) - getRatingCount(a))
         .slice(0, displayQuantity)
 
-    if (loading) {
+    if (loading || !products.length) {
         return null
     }
 
     return (
         <div className='px-6 my-30 max-w-6xl mx-auto'>
-            <Title title='Best Selling' description={`Showing ${visibleProducts.length} of ${products.length} products`} href='/shop' />
+            <Title title='Discover more' description={`Showing ${visibleProducts.length} of ${products.length} products`} href='/shop' />
             {visibleProducts.length ? (
                 <div className='mt-12 grid grid-cols-2 sm:flex flex-wrap gap-6 xl:gap-12'>
                     {visibleProducts.map((product) => (

@@ -16,8 +16,8 @@ const ProductCard = ({ product }) => {
         : 0
 
     return (
-        <Link href={`/product/${product.id}`} className='group block min-w-0 max-xl:mx-auto'>
-            <div className='flex aspect-square w-full items-center justify-center rounded-lg bg-[#F5F5F5] sm:h-68 sm:w-60'>
+        <Link href={`/product/${product.id}`} className='group block min-w-0 w-full sm:max-w-60'>
+            <div className='flex aspect-square w-full items-center justify-center rounded-lg bg-[#F5F5F5] sm:max-w-60'>
                 {image ? (
                     <Image width={500} height={500} className='max-h-30 w-auto object-contain transition duration-300 group-hover:scale-115 sm:max-h-40' src={image} alt={product.name || "Product image"} />
                 ) : (
@@ -27,6 +27,7 @@ const ProductCard = ({ product }) => {
             <div className='flex max-w-60 justify-between gap-3 pt-2 text-sm text-slate-800'>
                 <div className="min-w-0">
                     <p className="line-clamp-2 break-words">{product.name || "Unnamed product"}</p>
+                    <p className="mt-1 text-xs text-slate-500">{product.store?.name || product.category}</p>
                     <div className='flex'>
                         {Array(5).fill('').map((_, index) => (
                             <StarIcon key={index} size={14} className='text-transparent mt-0.5' fill={rating >= index + 1 ? "#00C950" : "#D1D5DB"} />

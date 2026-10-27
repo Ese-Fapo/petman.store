@@ -144,7 +144,7 @@ export default function CreateStore() {
                             <p className="max-w-lg">
                                 {canReapply
                                     ? "Your previous shop application was not approved. Update your details and submit again for admin review."
-                                    : "To become a seller on JUSTPETS, submit your pet shop details for review. Your store will be activated after admin verification."}
+                                    : "To become a seller on shopSmart, submit your store details for review. Your store will be activated after admin verification."}
                             </p>
                         </div>
 

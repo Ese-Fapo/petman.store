@@ -7,8 +7,8 @@ import "./globals.css";
 const outfit = Outfit({ subsets: ["latin"], weight: ["400", "500", "600"] });
 
 export const metadata = {
-    title: "JUSTPETS - Ireland Pet Shop",
-    description: "JUSTPETS is an Ireland-based pet shop for food, toys, treats, bowls, and everyday care essentials.",
+    title: "shopSmart | Everything for your everyday",
+    description: "Discover furniture, kitchen essentials, electronics, garden supplies and more from independent sellers on shopSmart, your everyday multivendor marketplace.",
 };
 
 export default function RootLayout({ children }) {
