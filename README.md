@@ -20,6 +20,21 @@ npm run dev
 
 Open [http://localhost:3000](http://localhost:3000) to view the site.
 
+## Hostinger deployment
+
+Install from the committed lockfile, including build dependencies:
+
+```bash
+npm ci --include=dev
+```
+
+Set the build command to `npm run build` and the start command to `npm start`.
+The production build uses Webpack to avoid the Turbopack PostCSS worker failure
+reported on Hostinger. Development continues to use Turbopack.
+
+Deploy from the source repository without uploading `node_modules` or `.next`.
+Both directories are ignored by Git and must be generated on the deployment host.
+
 ## Features
 
 - Customer storefront for browsing products across household and lifestyle categories

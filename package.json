@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev --turbopack",
-    "build": "prisma generate && next build",
+    "build": "prisma generate && next build --webpack",
     "start": "next start",
     "lint": "next lint",
     "postinstall": "prisma generate"
@@ -29,10 +29,10 @@
     "ws": "^8.21.3"
   },
   "devDependencies": {
-    "@tailwindcss/postcss": "^4.3.3",
+    "@tailwindcss/postcss": "4.3.3",
     "@types/ws": "^8.18.1",
     "prisma": "^7.9.1",
-    "tailwindcss": "^4.3.3",
+    "tailwindcss": "4.3.3",
     "tsx": "^4.23.12"
   }
 }
